@@ -19,6 +19,7 @@ import { useTranslations } from "next-intl";
 import { MCPIcon } from "ui/mcp-icon";
 import { WriteIcon } from "ui/write-icon";
 import {
+  BarChart3,
   FolderOpenIcon,
   FolderSearchIcon,
   PlusIcon,
@@ -96,6 +97,18 @@ export function AppSidebarMenus({ user }: { user?: BasicUser }) {
                 <SidebarMenuButton className="font-semibold">
                   <Waypoints className="size-4" />
                   {t("Layout.workflow")}
+                </SidebarMenuButton>
+              </Link>
+            </SidebarMenuItem>
+          </Tooltip>
+        </SidebarMenu>
+        <SidebarMenu>
+          <Tooltip>
+            <SidebarMenuItem>
+              <Link href="/powerbi">
+                <SidebarMenuButton className="font-semibold">
+                  <BarChart3 className="size-4" />
+                  Power BI Dashboard
                 </SidebarMenuButton>
               </Link>
             </SidebarMenuItem>
