@@ -22,6 +22,7 @@ import {
   BarChart3,
   FolderOpenIcon,
   FolderSearchIcon,
+  Map,
   PlusIcon,
   Waypoints,
 } from "lucide-react";
@@ -109,6 +110,18 @@ export function AppSidebarMenus({ user }: { user?: BasicUser }) {
                 <SidebarMenuButton className="font-semibold">
                   <BarChart3 className="size-4" />
                   Power BI Dashboard
+                </SidebarMenuButton>
+              </Link>
+            </SidebarMenuItem>
+          </Tooltip>
+        </SidebarMenu>
+        <SidebarMenu>
+          <Tooltip>
+            <SidebarMenuItem>
+              <Link href="/network-map">
+                <SidebarMenuButton className="font-semibold">
+                  <Map className="size-4" />
+                  Network Map
                 </SidebarMenuButton>
               </Link>
             </SidebarMenuItem>
