@@ -23,6 +23,10 @@ const {
   socialAuthenticationProviders,
 } = getAuthConfig();
 
+const trustedOrigins = process.env.BETTER_AUTH_TRUSTED_ORIGINS?.split(",")
+  .map((origin) => origin.trim())
+  .filter(Boolean);
+
 const options = {
   secret: process.env.BETTER_AUTH_SECRET!,
   plugins: [
@@ -39,6 +43,7 @@ const options = {
     nextCookies(),
   ],
   baseURL: process.env.BETTER_AUTH_URL || process.env.NEXT_PUBLIC_BASE_URL,
+  trustedOrigins,
   user: {
     changeEmail: {
       enabled: true,

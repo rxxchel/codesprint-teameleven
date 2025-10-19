@@ -2,6 +2,32 @@
 @import "tw-animate-css";
 /* Individual theme variants - themes from  https://github.com/rawestmoreland/theme-generator/blob/main/src/app/globals.css */
 
+html,
+body,
+#root {
+  height: 100%;
+  overflow-x: hidden;
+}
+
+body {
+  position: relative;
+  width: 100%;
+}
+
+a-scene,
+.a-canvas,
+.a-canvas canvas,
+video#arjs-video,
+video[playsinline],
+canvas.a-canvas {
+  position: fixed !important;
+  inset: 0 !important;
+  width: 100dvw !important;
+  height: 100dvh !important;
+  max-width: 100% !important;
+  object-fit: cover;
+}
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);

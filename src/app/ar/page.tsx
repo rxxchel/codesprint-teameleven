@@ -3,8 +3,13 @@
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
+import { AnimatePresence, motion } from "framer-motion";
+import { toast } from "sonner";
 
-import type { PortPoint } from "@/components/ar-globe";
+import ChatSheet from "@/components/ar/chat-sheet";
+import PortInfoCard from "@/components/ar/port-info-card";
+import TopBar from "@/components/ar/top-bar";
+import type { PortDatum } from "@/components/ar-globe";
 
 const ARGlobe = dynamic(() => import("@/components/ar-globe"), {
   ssr: false,
@@ -17,7 +22,7 @@ const ARGlobe = dynamic(() => import("@/components/ar-globe"), {
 
 const markerHref = "https://ar-js-org.github.io/AR.js/data/images/HIRO.jpg";
 
-const fallbackData: PortPoint[] = [
+const fallbackData: PortDatum[] = [
   {
     name: "Busan",
     lat: 35.1796,
@@ -154,13 +159,18 @@ const fallbackData: PortPoint[] = [
 
 export default function ARPage() {
   const [scriptsReady, setScriptsReady] = useState(false);
-  const [ports, setPorts] = useState(fallbackData);
-  const [status, setStatus] = useState<"idle" | "loading" | "ready" | "error">(
+  const [sceneReady, setSceneReady] = useState(false);
+  const [ports, setPorts] = useState<PortDatum[]>(fallbackData);
+  const [status, setStatus] = useState<"loading" | "ready" | "error">(
     "loading",
   );
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [reloadToken, setReloadToken] = useState(0);
   const [scriptError, setScriptError] = useState<string | null>(null);
+  const [selectedPort, setSelectedPort] = useState<PortDatum | null>(null);
+  const [isChatOpen, setIsChatOpen] = useState(false);
+  const [chatPrefill, setChatPrefill] = useState<string | null>(null);
+  const [chatContextPort, setChatContextPort] = useState<string | null>(null);
 
   useEffect(() => {
     let isCancelled = false;
@@ -248,11 +258,12 @@ export default function ARPage() {
       } catch (error) {
         if (!isCancelled) {
           console.error(error);
-          setScriptError(
+          const message =
             error instanceof Error
               ? error.message
-              : "Failed to load AR runtime libraries.",
-          );
+              : "Failed to load AR runtime libraries.";
+          setScriptError(message);
+          toast.error(message);
           setScriptsReady(false);
         }
       }
@@ -270,9 +281,10 @@ export default function ARPage() {
       const supportsCamera =
         typeof navigator.mediaDevices?.getUserMedia === "function";
       if (!supportsCamera) {
-        setScriptError(
-          "Camera access is not available in this browser. Try a recent mobile browser over HTTPS.",
-        );
+        const message =
+          "Camera access is not available in this browser. Try a recent mobile browser over HTTPS.";
+        setScriptError(message);
+        toast.error(message);
       }
     }
   }, []);
@@ -303,9 +315,10 @@ export default function ARPage() {
       } catch (error) {
         if (isCancelled) return;
         console.error("Failed to load AR port data", error);
-        setErrorMessage(
-          error instanceof Error ? error.message : "Unknown error",
-        );
+        const message =
+          error instanceof Error ? error.message : "Unknown error";
+        setErrorMessage(message);
+        toast.error("Port data unavailable, showing cached sample data.");
         setPorts(fallbackData);
         setStatus("error");
       }
@@ -319,83 +332,231 @@ export default function ARPage() {
   }, [reloadToken]);
 
   const infoMessage = useMemo(() => {
-    if (scriptError) return scriptError;
+    if (scriptError)
+      return "We couldn’t initialize the AR runtime. Refresh the page or try a different mobile browser.";
     if (!scriptsReady)
-      return "Loading AR runtime… this can take a couple of seconds on mobile.";
+      return "Loading the AR runtime… this may take a few seconds on mobile networks.";
     if (status === "loading")
-      return "Preparing AR… Allow camera access when prompted.";
+      return "Preparing the KPI data feed and calibrating the globe.";
     if (status === "error")
-      return "We could not load the latest KPI data. Showing sample data for now.";
-    return "Point your device at the HIRO marker to anchor the globe.";
+      return "Showing cached sample data for now. Reload when your connection improves.";
+    return "Point your device at the HIRO marker to anchor the globe in your space.";
   }, [scriptError, scriptsReady, status]);
 
+  const overlayState = useMemo(() => {
+    if (scriptError) {
+      return {
+        title: "AR runtime unavailable",
+        body: "We couldn’t initialize the AR engine. Reload the page or switch to a recent mobile browser with camera access enabled.",
+      };
+    }
+    if (!scriptsReady) {
+      return {
+        title: "Loading AR runtime",
+        body: "Fetching the required A-Frame and AR.js scripts… Allow camera access when prompted.",
+      };
+    }
+    if (!sceneReady) {
+      return {
+        title: "Initializing globe",
+        body: "Calibrating the marker and preparing the 3D scene.",
+      };
+    }
+    if (status === "loading") {
+      return {
+        title: "Preparing data",
+        body: "Fetching the latest KPI feed and aligning the globe.",
+      };
+    }
+    return null;
+  }, [sceneReady, scriptError, scriptsReady, status]);
+
+  const dataBadge = useMemo(() => {
+    switch (status) {
+      case "ready":
+        return {
+          label: "Live KPI feed",
+          tone: "ready" as const,
+        };
+      case "error":
+        return {
+          label: "Sample data (offline)",
+          tone: "error" as const,
+        };
+      default:
+        return {
+          label: "Preparing data",
+          tone: "loading" as const,
+        };
+    }
+  }, [status]);
+
+  const handlePortSelect = (port: PortDatum) => {
+    setSelectedPort(port);
+    setChatContextPort(port.name);
+  };
+
+  const closePortCard = () => {
+    setSelectedPort(null);
+  };
+
+  const handleAskAI = (prefill: string, portName: string) => {
+    setChatPrefill(prefill);
+    setChatContextPort(portName);
+    setIsChatOpen(true);
+  };
+
   return (
-    <>
-      <main className="relative flex min-h-screen flex-col items-center bg-gradient-to-b from-black via-slate-950 to-black text-white">
-        <header className="z-20 w-full max-w-3xl space-y-3 px-4 py-6 text-center sm:px-8">
-          <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">
-            AR Port Performance Globe
-          </h1>
-          <p className="mx-auto max-w-2xl text-sm text-white/70 sm:text-base">
-            {infoMessage}
-          </p>
-          {status === "error" && errorMessage && (
-            <p className="mx-auto max-w-xl text-xs text-rose-300 sm:text-sm">
-              {errorMessage}
-            </p>
-          )}
+    <main className="relative min-h-screen overflow-hidden bg-black text-white">
+      <div className="fixed inset-0 h-[100dvh] w-[100dvw] overflow-hidden">
+        {scriptsReady && !scriptError ? (
+          <ARGlobe
+            data={ports}
+            selected={selectedPort?.name}
+            onSelect={handlePortSelect}
+            onReady={() => setSceneReady(true)}
+          />
+        ) : (
+          <div className="h-full w-full bg-[radial-gradient(circle_at_top,rgba(59,130,246,0.25),transparent_65%),#020617]" />
+        )}
+      </div>
 
-          <div className="flex flex-col items-center justify-center gap-3 text-sm text-white/70 sm:flex-row">
-            <Link
-              href={markerHref}
-              target="_blank"
-              rel="noreferrer"
-              className="rounded-full border border-white/20 px-4 py-2 text-white transition hover:border-white/60 hover:text-white"
-            >
-              Open HIRO Marker
-            </Link>
+      <div className="pointer-events-none absolute inset-x-0 top-0 z-10 h-40 bg-gradient-to-b from-black/90 via-black/40 to-transparent" />
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10 h-48 bg-gradient-to-t from-black/90 via-black/40 to-transparent" />
 
-            {status === "error" && (
-              <button
-                type="button"
-                onClick={() => setReloadToken((token) => token + 1)}
-                className="rounded-full border border-white/20 px-4 py-2 text-white transition hover:border-white/60 hover:text-white"
-              >
-                Try again
-              </button>
-            )}
-          </div>
-        </header>
+      <TopBar
+        badgeLabel={dataBadge.label}
+        status={dataBadge.tone}
+        onOpenChat={() => setIsChatOpen(true)}
+        isChatOpen={isChatOpen}
+      />
 
-        <section className="relative z-10 flex w-full flex-1 items-center justify-center px-4 pb-8 sm:px-8">
-          <div className="relative h-full w-full max-w-4xl">
-            <ARGlobe data={ports} ready={scriptsReady && !scriptError} />
-            {!scriptsReady && !scriptError && (
-              <div className="pointer-events-none absolute inset-0 flex items-center justify-center text-sm text-white/60">
-                Loading camera experience…
-              </div>
-            )}
-          </div>
-        </section>
+      <AnimatePresence>
+        {overlayState && (
+          <motion.div
+            className="absolute inset-0 z-30 flex items-center justify-center px-6 text-center"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            <div className="max-w-md rounded-2xl border border-white/20 bg-black/70 px-6 py-5 text-sm leading-relaxed text-white/80 backdrop-blur-lg sm:text-base">
+              <p className="text-base font-semibold text-white sm:text-lg">
+                {overlayState.title}
+              </p>
+              <p className="mt-3 text-sm text-white/80 sm:text-base">
+                {overlayState.body}
+              </p>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
-        <footer className="z-20 w-full max-w-3xl px-4 pb-8 text-center text-xs text-white/50 sm:px-8">
-          Works best on iOS Safari or Android Chrome over HTTPS. Lighting and
-          marker contrast improve tracking stability.
-        </footer>
-      </main>
-    </>
+      <FooterPanel
+        status={status}
+        errorMessage={errorMessage}
+        infoMessage={infoMessage}
+        onRetry={() => setReloadToken((token) => token + 1)}
+      />
+
+      <AnimatePresence>
+        {selectedPort && (
+          <>
+            <motion.div
+              className="fixed inset-0 z-30 bg-black/50 backdrop-blur-sm"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={closePortCard}
+            />
+            <div className="pointer-events-none fixed inset-x-0 bottom-0 z-40 flex justify-center px-4 pb-[calc(24px+env(safe-area-inset-bottom,0px))]">
+              <PortInfoCard
+                port={selectedPort}
+                onClose={closePortCard}
+                onAskAI={(prefill) => handleAskAI(prefill, selectedPort.name)}
+              />
+            </div>
+          </>
+        )}
+      </AnimatePresence>
+
+      <ChatSheet
+        open={isChatOpen}
+        onOpenChange={(open) => {
+          setIsChatOpen(open);
+          if (!open) {
+            setChatPrefill(null);
+          }
+        }}
+        prefill={chatPrefill}
+        activePortName={chatContextPort ?? selectedPort?.name ?? null}
+      />
+    </main>
   );
 }
 
-function normalizePorts(raw: unknown): PortPoint[] {
+type FooterPanelProps = {
+  status: "loading" | "ready" | "error";
+  errorMessage: string | null;
+  infoMessage: string;
+  onRetry: () => void;
+};
+
+function FooterPanel({
+  status,
+  errorMessage,
+  infoMessage,
+  onRetry,
+}: FooterPanelProps) {
+  return (
+    <div
+      className="fixed inset-x-0 bottom-0 z-40 px-4 pb-[calc(32px+env(safe-area-inset-bottom,0px))] sm:px-8"
+      style={{ pointerEvents: "none" }}
+    >
+      <div className="mx-auto flex w-full max-w-2xl flex-col gap-4 pointer-events-auto">
+        <div className="flex flex-wrap items-center gap-3 text-sm sm:text-base">
+          <Link
+            href={markerHref}
+            target="_blank"
+            rel="noreferrer"
+            className="inline-flex items-center rounded-full border border-white/20 bg-white/15 px-4 py-2 font-medium text-white transition hover:bg-white/25"
+          >
+            Open HIRO Marker
+          </Link>
+
+          {status === "error" && (
+            <button
+              type="button"
+              onClick={onRetry}
+              className="inline-flex items-center rounded-full border border-white/20 bg-white/10 px-4 py-2 font-medium text-white transition hover:bg-white/20"
+            >
+              Try again
+            </button>
+          )}
+        </div>
+
+        {status === "error" && errorMessage && (
+          <div className="max-w-md rounded-2xl border border-rose-400/30 bg-rose-500/10 px-4 py-3 text-xs text-rose-100 sm:text-sm">
+            {errorMessage}
+          </div>
+        )}
+
+        <div className="max-w-2xl rounded-2xl border border-white/15 bg-black/60 px-4 py-4 text-xs text-white/70 backdrop-blur-sm sm:text-sm">
+          {infoMessage}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function normalizePorts(raw: unknown): PortDatum[] {
   if (!Array.isArray(raw)) return [];
 
   return raw
     .map((entry) => mapPort(entry))
-    .filter((port): port is PortPoint => port !== null);
+    .filter((port): port is PortDatum => port !== null);
 }
 
-function mapPort(entry: unknown): PortPoint | null {
+function mapPort(entry: unknown): PortDatum | null {
   if (!entry || typeof entry !== "object") return null;
 
   const { name, lat, lng, kpi, metrics } = entry as {
@@ -403,7 +564,7 @@ function mapPort(entry: unknown): PortPoint | null {
     lat?: unknown;
     lng?: unknown;
     kpi?: unknown;
-    metrics?: Record<string, number | string>;
+    metrics?: Record<string, unknown>;
   };
 
   if (typeof name !== "string") return null;
@@ -416,14 +577,43 @@ function mapPort(entry: unknown): PortPoint | null {
     !Number.isFinite(latitude) ||
     !Number.isFinite(longitude) ||
     !Number.isFinite(kpiValue)
-  )
+  ) {
     return null;
+  }
+
+  const metricsObj = metrics ?? {};
+  const arrival = Number(
+    (metricsObj as Record<string, unknown>).arrival_accuracy_delta_week,
+  );
+  const assured = Number(
+    (metricsObj as Record<string, unknown>).assured_port_time_pct,
+  );
+  const variance = Number(
+    (metricsObj as Record<string, unknown>).berth_time_variance_h,
+  );
+  const throughput = Number(
+    (metricsObj as Record<string, unknown>).throughput_teu_day,
+  );
+
+  if (
+    !Number.isFinite(arrival) ||
+    !Number.isFinite(assured) ||
+    !Number.isFinite(variance) ||
+    !Number.isFinite(throughput)
+  ) {
+    return null;
+  }
 
   return {
     name,
     lat: latitude,
     lng: longitude,
     kpi: kpiValue,
-    metrics,
+    metrics: {
+      arrival_accuracy_delta_week: arrival,
+      assured_port_time_pct: assured,
+      berth_time_variance_h: variance,
+      throughput_teu_day: throughput,
+    },
   };
 }
