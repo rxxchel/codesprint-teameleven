@@ -98,20 +98,15 @@ export function PSANetworkMap({
     (terminal: PSATerminal) => {
       setSelectedTerminal(terminal);
       onTerminalClick?.(terminal);
+      // Open chat sidebar directly when clicking marker
+      onAskAI?.(terminal);
     },
-    [onTerminalClick],
+    [onTerminalClick, onAskAI],
   );
 
   const handleClosePopup = useCallback(() => {
     setSelectedTerminal(null);
   }, []);
-
-  const handleAskAI = useCallback(
-    (terminal: PSATerminal) => {
-      onAskAI?.(terminal);
-    },
-    [onAskAI],
-  );
 
   const metricInfo = METRICS.find((m) => m.key === selectedMetric);
 
@@ -259,14 +254,6 @@ export function PSANetworkMap({
                     </span>
                   </div>
                 </div>
-
-                {/* Ask AI Button */}
-                <button
-                  onClick={() => handleAskAI(selectedTerminal)}
-                  className="mt-3 w-full rounded-md bg-blue-600 px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-                >
-                  Ask AI about this terminal
-                </button>
               </div>
             </div>
           </Popup>

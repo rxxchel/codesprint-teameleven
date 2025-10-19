@@ -27,6 +27,10 @@ type MapChatSidebarProps = {
   terminal: PSATerminal | null;
 };
 
+// PSA Network Insights agent ID from database
+const PSA_AGENT_ID = "fcb1433f-7b9a-43ec-9186-322b8161fdf1";
+const PSA_AGENT_NAME = "PSA Network Insights Conversational AI Agent";
+
 export function MapChatSidebar({
   isOpen,
   onClose,
@@ -36,6 +40,7 @@ export function MapChatSidebar({
   const [isAtBottom, setIsAtBottom] = useState(true);
   const [input, setInput] = useState("");
   const [threadId] = useState(() => generateUUID());
+  const [hasUserSentMessage, setHasUserSentMessage] = useState(false);
 
   const [
     model,
@@ -53,8 +58,25 @@ export function MapChatSidebar({
     ]),
   );
 
-  // Start with empty messages - context will be auto-sent via useEffect
+  // Start with empty messages - context will be pre-filled in input
   const initialMessages = useMemo<Array<UIMessage>>(() => [], []);
+
+  // PSA agent mention to force using only the PSA agent
+  const psaAgentMention = useMemo(
+    () => [
+      {
+        type: "agent" as const,
+        agentId: PSA_AGENT_ID,
+        name: PSA_AGENT_NAME,
+        description: "AI assistant specialized in PSA Global Network Insights",
+        icon: {
+          type: "emoji" as const,
+          value: "🚢",
+        },
+      },
+    ],
+    [],
+  );
 
   const {
     messages,
@@ -77,9 +99,9 @@ export function MapChatSidebar({
           chatModel:
             (body as { model: ChatModel })?.model ?? latestRef.current.model,
           toolChoice: latestRef.current.toolChoice,
-          allowedAppDefaultToolkit: latestRef.current.allowedAppDefaultToolkit,
-          allowedMcpServers: latestRef.current.allowedMcpServers,
-          mentions: [],
+          allowedAppDefaultToolkit: [], // Disable default tools when using agent
+          allowedMcpServers: {}, // Disable MCP servers when using agent
+          mentions: psaAgentMention, // Force PSA agent only
           message: lastMessage,
           imageTool: {
             model: latestRef.current.threadImageToolModel[threadId],
@@ -98,6 +120,15 @@ export function MapChatSidebar({
       await _addToolResult(result);
     },
     [_addToolResult],
+  );
+
+  // Wrap sendMessage to track when user sends their first message
+  const handleSendMessage = useCallback(
+    (message: Parameters<typeof sendMessage>[0]) => {
+      setHasUserSentMessage(true);
+      return sendMessage(message);
+    },
+    [sendMessage],
   );
 
   const latestRef = useToRef({
@@ -157,10 +188,18 @@ export function MapChatSidebar({
     });
   }, []);
 
-  // Auto-send initial context message when terminal is set
+  // Pre-fill input with terminal context when terminal is selected
+  // Only pre-fill if user hasn't sent any messages yet
   useEffect(() => {
-    if (terminal && messages.length === 0) {
-      const contextMessage = `[PSA Network Insights - Terminal Analysis Request]
+    if (!terminal) return;
+
+    // If user has already sent messages, just open the sidebar (don't pre-fill)
+    if (hasUserSentMessage || messages.length > 0) {
+      return;
+    }
+
+    // Pre-fill the input with the terminal context
+    const contextMessage = `[PSA Network Insights - Terminal Analysis Request]
 
 You are analyzing the ${terminal.name} terminal in the PSA global network.
 
@@ -185,12 +224,8 @@ Please provide a comprehensive analysis of this terminal's operational performan
 
 Focus on being specific, data-driven, and providing practical insights that terminal managers can act on.`;
 
-      sendMessage({
-        role: "user",
-        parts: [{ type: "text", text: contextMessage }],
-      });
-    }
-  }, [terminal, messages.length, sendMessage]);
+    setInput(contextMessage);
+  }, [terminal, hasUserSentMessage, messages.length]);
 
   // Auto-scroll on new messages
   useEffect(() => {
@@ -251,7 +286,7 @@ Focus on being specific, data-driven, and providing practical insights that term
                   isLoading={isLoading || isPendingToolCall}
                   isLastMessage={isLastMessage}
                   setMessages={setMessages}
-                  sendMessage={sendMessage}
+                  sendMessage={handleSendMessage}
                 />
               );
             })}
@@ -270,7 +305,7 @@ Focus on being specific, data-driven, and providing practical insights that term
             <PromptInput
               input={input}
               threadId={threadId}
-              sendMessage={sendMessage}
+              sendMessage={handleSendMessage}
               setInput={setInput}
               isLoading={isLoading || isPendingToolCall}
               onStop={stop}
