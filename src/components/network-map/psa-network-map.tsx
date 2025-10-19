@@ -227,11 +227,11 @@ export function PSANetworkMap({
             closeOnClick={false}
             className="terminal-popup"
           >
-            <div className="p-4 min-w-[280px] bg-white/95 backdrop-blur-md rounded-xl shadow-2xl border border-gray-200/50">
+            <div className="p-4 min-w-[280px] bg-gray-900/95 backdrop-blur-md rounded-xl shadow-2xl border border-gray-700/50">
               {/* Header with gradient */}
-              <div className="mb-4 pb-3 border-b border-gray-200/70">
+              <div className="mb-4 pb-3 border-b border-gray-700/70">
                 <div className="flex items-start justify-between gap-2 mb-2">
-                  <h3 className="font-bold text-lg bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
+                  <h3 className="font-bold text-lg bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">
                     {selectedTerminal.name}
                   </h3>
                   <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center flex-shrink-0 shadow-lg">
@@ -250,7 +250,7 @@ export function PSANetworkMap({
                     </svg>
                   </div>
                 </div>
-                <p className="text-sm text-gray-600 flex items-center gap-1.5">
+                <p className="text-sm text-gray-400 flex items-center gap-1.5">
                   <svg
                     className="w-3.5 h-3.5"
                     fill="none"
@@ -269,12 +269,12 @@ export function PSANetworkMap({
               </div>
 
               {/* Featured Metric */}
-              <div className="mb-4 p-3 bg-gradient-to-br from-blue-50 to-purple-50 rounded-lg border border-blue-100/50">
+              <div className="mb-4 p-3 bg-gradient-to-br from-blue-900/40 to-purple-900/40 rounded-lg border border-blue-500/30">
                 <div className="flex justify-between items-center">
-                  <span className="text-sm font-semibold text-gray-700">
+                  <span className="text-sm font-semibold text-gray-300">
                     {metricInfo?.label}
                   </span>
-                  <span className="text-lg font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                  <span className="text-lg font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
                     {metricInfo?.format(selectedTerminal[selectedMetric])}
                   </span>
                 </div>
@@ -282,42 +282,42 @@ export function PSANetworkMap({
 
               {/* All Metrics Grid */}
               <div className="grid grid-cols-2 gap-2.5">
-                <div className="p-2.5 bg-gray-50/80 rounded-lg border border-gray-200/50 hover:bg-gray-100/80 transition-colors">
-                  <div className="text-xs text-gray-600 mb-1">Time Savings</div>
-                  <div className="font-bold text-sm text-gray-900">
+                <div className="p-2.5 bg-gray-800/80 rounded-lg border border-gray-700/50 hover:bg-gray-700/80 transition-colors">
+                  <div className="text-xs text-gray-400 mb-1">Time Savings</div>
+                  <div className="font-bold text-sm text-white">
                     {selectedTerminal.port_time_savings_pct.toFixed(1)}%
                   </div>
                 </div>
-                <div className="p-2.5 bg-gray-50/80 rounded-lg border border-gray-200/50 hover:bg-gray-100/80 transition-colors">
-                  <div className="text-xs text-gray-600 mb-1">Bunker Saved</div>
-                  <div className="font-bold text-sm text-gray-900">
+                <div className="p-2.5 bg-gray-800/80 rounded-lg border border-gray-700/50 hover:bg-gray-700/80 transition-colors">
+                  <div className="text-xs text-gray-400 mb-1">Bunker Saved</div>
+                  <div className="font-bold text-sm text-white">
                     ${(selectedTerminal.bunker_saved_usd / 1000).toFixed(0)}K
                   </div>
                 </div>
-                <div className="p-2.5 bg-gray-50/80 rounded-lg border border-gray-200/50 hover:bg-gray-100/80 transition-colors">
-                  <div className="text-xs text-gray-600 mb-1">CO₂ Abated</div>
-                  <div className="font-bold text-sm text-gray-900">
+                <div className="p-2.5 bg-gray-800/80 rounded-lg border border-gray-700/50 hover:bg-gray-700/80 transition-colors">
+                  <div className="text-xs text-gray-400 mb-1">CO₂ Abated</div>
+                  <div className="font-bold text-sm text-white">
                     {(selectedTerminal.carbon_abatement_tonnes / 1000).toFixed(
                       1,
                     )}
                     K
                   </div>
                 </div>
-                <div className="p-2.5 bg-gray-50/80 rounded-lg border border-gray-200/50 hover:bg-gray-100/80 transition-colors">
-                  <div className="text-xs text-gray-600 mb-1">Accuracy</div>
-                  <div className="font-bold text-sm text-gray-900">
+                <div className="p-2.5 bg-gray-800/80 rounded-lg border border-gray-700/50 hover:bg-gray-700/80 transition-colors">
+                  <div className="text-xs text-gray-400 mb-1">Accuracy</div>
+                  <div className="font-bold text-sm text-white">
                     {selectedTerminal.arrival_accuracy_pct}%
                   </div>
                 </div>
-                <div className="p-2.5 bg-gray-50/80 rounded-lg border border-gray-200/50 hover:bg-gray-100/80 transition-colors">
-                  <div className="text-xs text-gray-600 mb-1">Port Calls</div>
-                  <div className="font-bold text-sm text-gray-900">
+                <div className="p-2.5 bg-gray-800/80 rounded-lg border border-gray-700/50 hover:bg-gray-700/80 transition-colors">
+                  <div className="text-xs text-gray-400 mb-1">Port Calls</div>
+                  <div className="font-bold text-sm text-white">
                     {selectedTerminal.calls_made}
                   </div>
                 </div>
-                <div className="p-2.5 bg-gray-50/80 rounded-lg border border-gray-200/50 hover:bg-gray-100/80 transition-colors">
-                  <div className="text-xs text-gray-600 mb-1">Berth Time</div>
-                  <div className="font-bold text-sm text-gray-900">
+                <div className="p-2.5 bg-gray-800/80 rounded-lg border border-gray-700/50 hover:bg-gray-700/80 transition-colors">
+                  <div className="text-xs text-gray-400 mb-1">Berth Time</div>
+                  <div className="font-bold text-sm text-white">
                     {selectedTerminal.avg_berth_time_hours.toFixed(1)}h
                   </div>
                 </div>
@@ -327,35 +327,35 @@ export function PSANetworkMap({
         )}
       </MapGL>
 
-      {/* Legend with Enhanced Glassmorphism */}
-      <div className="absolute bottom-6 left-6 bg-white/95 backdrop-blur-xl rounded-2xl shadow-2xl border border-white/60 p-6 max-w-sm transition-all duration-300 hover:shadow-3xl hover:scale-[1.02] group">
+      {/* Legend with Enhanced Glassmorphism - Dark Theme */}
+      <div className="absolute bottom-6 left-6 bg-gray-900/95 backdrop-blur-xl rounded-2xl shadow-2xl border border-gray-700/60 p-6 max-w-sm transition-all duration-300 hover:shadow-3xl hover:scale-[1.02] group">
         {/* Gradient border effect */}
         <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-blue-500/20 via-purple-500/20 to-pink-500/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 -z-10 blur-xl"></div>
 
         <div className="flex items-center gap-2 mb-3">
           <div className="w-1 h-7 bg-gradient-to-b from-blue-500 via-purple-500 to-pink-500 rounded-full"></div>
-          <h4 className="font-bold text-base bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
+          <h4 className="font-bold text-base bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">
             {metricInfo?.label}
           </h4>
         </div>
 
-        <p className="text-xs text-gray-600 mb-5 leading-relaxed pl-3">
+        <p className="text-xs text-gray-400 mb-5 leading-relaxed pl-3">
           {metricInfo?.description}
         </p>
 
         <div className="space-y-3">
-          <div className="flex items-center justify-between text-xs font-semibold text-gray-700">
-            <span className="px-3 py-1.5 bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg shadow-sm border border-gray-200/50">
+          <div className="flex items-center justify-between text-xs font-semibold text-gray-200">
+            <span className="px-3 py-1.5 bg-gradient-to-br from-gray-800 to-gray-700 rounded-lg shadow-sm border border-gray-600/50">
               {metricInfo?.format(min)}
             </span>
-            <span className="px-3 py-1.5 bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg shadow-sm border border-gray-200/50">
+            <span className="px-3 py-1.5 bg-gradient-to-br from-gray-800 to-gray-700 rounded-lg shadow-sm border border-gray-600/50">
               {metricInfo?.format(max)}
             </span>
           </div>
 
           <div className="relative">
             <div
-              className="h-5 rounded-full shadow-lg relative overflow-hidden ring-1 ring-gray-200/50"
+              className="h-5 rounded-full shadow-lg relative overflow-hidden ring-1 ring-gray-600/50"
               style={{
                 background: isHigherBetter
                   ? `linear-gradient(to right, rgb(${END_COLOR.r}, ${END_COLOR.g}, ${END_COLOR.b}), rgb(${START_COLOR.r}, ${START_COLOR.g}, ${START_COLOR.b}))`
@@ -372,7 +372,7 @@ export function PSANetworkMap({
 
           <div className="flex items-center justify-center gap-2 pt-1">
             <svg
-              className="w-3 h-3 text-gray-500"
+              className="w-3 h-3 text-gray-400"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -384,13 +384,13 @@ export function PSANetworkMap({
                 d="M15 19l-7-7 7-7"
               />
             </svg>
-            <p className="text-xs text-gray-600 font-semibold">
+            <p className="text-xs text-gray-300 font-semibold">
               {isHigherBetter
                 ? "Lower → Higher (Better)"
                 : "Higher (Better) → Lower"}
             </p>
             <svg
-              className="w-3 h-3 text-gray-500"
+              className="w-3 h-3 text-gray-400"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"

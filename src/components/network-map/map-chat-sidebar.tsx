@@ -323,7 +323,7 @@ Focus on being specific, data-driven, and providing practical insights that term
 
           {/* Chat Messages */}
           <div
-            className="flex-1 overflow-y-auto p-5 space-y-4 bg-gradient-to-b from-gray-50/50 to-white/50"
+            className="flex-1 overflow-y-auto p-5 space-y-4 bg-gradient-to-b from-gray-900/50 to-gray-800/50"
             ref={containerRef}
             onScroll={handleScroll}
           >
@@ -345,10 +345,10 @@ Focus on being specific, data-driven, and providing practical insights that term
                       />
                     </svg>
                   </div>
-                  <h3 className="font-bold text-gray-900 mb-2">
+                  <h3 className="font-bold text-white mb-2">
                     AI-Powered Terminal Insights
                   </h3>
-                  <p className="text-sm text-gray-600 leading-relaxed">
+                  <p className="text-sm text-gray-300 leading-relaxed">
                     Review the pre-filled analysis request below and click send
                     to get comprehensive insights about this terminal.
                   </p>
@@ -385,7 +385,7 @@ Focus on being specific, data-driven, and providing practical insights that term
           </div>
 
           {/* Input Area */}
-          <div className="border-t border-gray-200/80 p-4 bg-white/80 backdrop-blur-sm">
+          <div className="border-t border-gray-700/80 p-4 bg-gray-900/80 backdrop-blur-sm">
             <PromptInput
               input={input}
               threadId={threadId}

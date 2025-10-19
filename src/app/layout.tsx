@@ -21,7 +21,7 @@ export const metadata: Metadata = {
   title: "FishAI",
   description: "FishAI is a chatbot that uses the Tools to answer questions.",
   icons: {
-    icon: "/psa_logo.ico",
+    icon: [{ url: "/psa_logo.ico" }, { url: "/psa_logo.png", sizes: "any" }],
     shortcut: "/psa_logo.ico",
     apple: "/psa_logo.png",
   },

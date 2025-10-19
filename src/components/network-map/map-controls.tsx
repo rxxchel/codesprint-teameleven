@@ -28,46 +28,46 @@ const METRIC_ICONS: Record<
   avg_berth_time_hours: Clock,
 };
 
-// Color schemes for each metric
+// Color schemes for each metric (dark theme)
 const METRIC_COLORS: Record<
   MetricKey,
   { gradient: string; bg: string; border: string; text: string }
 > = {
   port_time_savings_pct: {
     gradient: "from-blue-500 to-cyan-500",
-    bg: "bg-blue-50",
-    border: "border-blue-200",
-    text: "text-blue-700",
+    bg: "bg-blue-900/30",
+    border: "border-blue-500/50",
+    text: "text-blue-300",
   },
   bunker_saved_usd: {
     gradient: "from-emerald-500 to-teal-500",
-    bg: "bg-emerald-50",
-    border: "border-emerald-200",
-    text: "text-emerald-700",
+    bg: "bg-emerald-900/30",
+    border: "border-emerald-500/50",
+    text: "text-emerald-300",
   },
   carbon_abatement_tonnes: {
     gradient: "from-green-500 to-lime-500",
-    bg: "bg-green-50",
-    border: "border-green-200",
-    text: "text-green-700",
+    bg: "bg-green-900/30",
+    border: "border-green-500/50",
+    text: "text-green-300",
   },
   arrival_accuracy_pct: {
     gradient: "from-purple-500 to-pink-500",
-    bg: "bg-purple-50",
-    border: "border-purple-200",
-    text: "text-purple-700",
+    bg: "bg-purple-900/30",
+    border: "border-purple-500/50",
+    text: "text-purple-300",
   },
   calls_made: {
     gradient: "from-orange-500 to-amber-500",
-    bg: "bg-orange-50",
-    border: "border-orange-200",
-    text: "text-orange-700",
+    bg: "bg-orange-900/30",
+    border: "border-orange-500/50",
+    text: "text-orange-300",
   },
   avg_berth_time_hours: {
     gradient: "from-indigo-500 to-blue-500",
-    bg: "bg-indigo-50",
-    border: "border-indigo-200",
-    text: "text-indigo-700",
+    bg: "bg-indigo-900/30",
+    border: "border-indigo-500/50",
+    text: "text-indigo-300",
   },
 };
 
@@ -76,10 +76,10 @@ export function MapControls({
   onMetricChange,
 }: MapControlsProps) {
   return (
-    <div className="bg-white/95 backdrop-blur-sm rounded-2xl shadow-xl border border-gray-200/50 p-5">
+    <div className="bg-gray-800/95 backdrop-blur-sm rounded-2xl shadow-xl border border-gray-700/50 p-5">
       <div className="flex items-center gap-2 mb-4">
         <div className="w-1 h-6 bg-gradient-to-b from-blue-500 to-purple-500 rounded-full"></div>
-        <h3 className="font-bold text-base text-gray-900">Select Metric</h3>
+        <h3 className="font-bold text-base text-white">Select Metric</h3>
       </div>
 
       <div className="space-y-2.5">
@@ -95,8 +95,8 @@ export function MapControls({
                 group relative flex items-start cursor-pointer p-3.5 rounded-xl transition-all duration-300
                 ${
                   isSelected
-                    ? `${colors.bg} border-2 ${colors.border} shadow-lg shadow-${colors.border.split("-")[1]}-200/50 scale-[1.02]`
-                    : "border-2 border-transparent hover:border-gray-200 hover:bg-gray-50/80 hover:shadow-md"
+                    ? `${colors.bg} border-2 ${colors.border} shadow-lg shadow-${colors.border.split("-")[1]}-500/30 scale-[1.02]`
+                    : "border-2 border-transparent hover:border-gray-600 hover:bg-gray-700/50 hover:shadow-md"
                 }
               `}
             >
@@ -116,24 +116,24 @@ export function MapControls({
                 ${
                   isSelected
                     ? `bg-gradient-to-br ${colors.gradient} shadow-lg`
-                    : "bg-gray-100 group-hover:bg-gray-200"
+                    : "bg-gray-700 group-hover:bg-gray-600"
                 }
               `}
               >
                 <Icon
-                  className={`w-5 h-5 ${isSelected ? "text-white" : "text-gray-600 group-hover:text-gray-800"}`}
+                  className={`w-5 h-5 ${isSelected ? "text-white" : "text-gray-300 group-hover:text-white"}`}
                 />
               </div>
 
               {/* Content */}
               <div className="flex-1 min-w-0">
                 <div
-                  className={`font-semibold text-sm mb-0.5 transition-colors ${isSelected ? colors.text : "text-gray-900"}`}
+                  className={`font-semibold text-sm mb-0.5 transition-colors ${isSelected ? colors.text : "text-white"}`}
                 >
                   {metric.label}
                 </div>
                 <div
-                  className={`text-xs leading-relaxed transition-colors ${isSelected ? "text-gray-700" : "text-gray-600"}`}
+                  className={`text-xs leading-relaxed transition-colors ${isSelected ? "text-gray-300" : "text-gray-400"}`}
                 >
                   {metric.description}
                 </div>
@@ -152,10 +152,10 @@ export function MapControls({
         })}
       </div>
 
-      <div className="mt-5 pt-4 border-t border-gray-200/80">
+      <div className="mt-5 pt-4 border-t border-gray-700/80">
         <div className="flex items-start gap-2">
           <svg
-            className="w-4 h-4 text-blue-500 mt-0.5 flex-shrink-0"
+            className="w-4 h-4 text-blue-400 mt-0.5 flex-shrink-0"
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
@@ -167,7 +167,7 @@ export function MapControls({
               d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
             />
           </svg>
-          <p className="text-xs text-gray-600 leading-relaxed">
+          <p className="text-xs text-gray-400 leading-relaxed">
             Click on any terminal marker to view detailed metrics and AI-powered
             insights
           </p>
