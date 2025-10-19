@@ -28,6 +28,14 @@ const DEFAULT_VIEW_STATE: ViewState = {
   padding: { top: 0, bottom: 0, left: 0, right: 0 },
 };
 
+// Enhanced marker size calculation for better visibility
+function calculateMarkerSize(value: number, min: number, max: number): number {
+  if (min === max) return 14;
+
+  const ratio = (value - min) / (max - min);
+  return 10 + ratio * 16; // Size between 10px and 26px (increased from 8-20px)
+}
+
 // Color gradient from green (good) to red (varies by metric)
 const START_COLOR = { r: 0, g: 200, b: 83 }; // Green
 const END_COLOR = { r: 255, g: 61, b: 0 }; // Red
@@ -56,21 +64,16 @@ function interpolateColor(
   return `rgba(${r}, ${g}, ${b}, 0.85)`;
 }
 
-function calculateMarkerSize(value: number, min: number, max: number): number {
-  if (min === max) return 12;
-
-  const ratio = (value - min) / (max - min);
-  return 8 + ratio * 12; // Size between 8px and 20px
-}
-
 type PSANetworkMapProps = {
   selectedMetric: MetricKey;
   onTerminalClick?: (terminal: PSATerminal) => void;
+  onAskAI?: (terminal: PSATerminal) => void;
 };
 
 export function PSANetworkMap({
   selectedMetric,
   onTerminalClick,
+  onAskAI,
 }: PSANetworkMapProps) {
   const [viewState, setViewState] = useState<ViewState>(DEFAULT_VIEW_STATE);
   const [selectedTerminal, setSelectedTerminal] = useState<PSATerminal | null>(
@@ -102,6 +105,13 @@ export function PSANetworkMap({
   const handleClosePopup = useCallback(() => {
     setSelectedTerminal(null);
   }, []);
+
+  const handleAskAI = useCallback(
+    (terminal: PSATerminal) => {
+      onAskAI?.(terminal);
+    },
+    [onAskAI],
+  );
 
   const metricInfo = METRICS.find((m) => m.key === selectedMetric);
 
@@ -150,17 +160,29 @@ export function PSANetworkMap({
               }}
             >
               <div
-                className="cursor-pointer transition-transform hover:scale-110"
+                className="cursor-pointer transition-all duration-300 ease-out hover:scale-125 group"
                 style={{
                   width: `${size}px`,
                   height: `${size}px`,
                   backgroundColor: color,
                   borderRadius: "50%",
                   border: "2px solid white",
-                  boxShadow: "0 2px 4px rgba(0,0,0,0.3)",
+                  boxShadow:
+                    selectedTerminal?.id === terminal.id
+                      ? "0 0 0 3px rgba(59, 130, 246, 0.4), 0 4px 12px rgba(0,0,0,0.4)"
+                      : "0 2px 8px rgba(0,0,0,0.25), 0 0 0 1px rgba(0,0,0,0.1)",
                 }}
                 title={terminal.name}
-              />
+              >
+                {/* Hover ring effect */}
+                <div
+                  className="absolute inset-0 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                  style={{
+                    boxShadow:
+                      "0 0 0 4px rgba(255,255,255,0.5), 0 0 20px rgba(0,0,0,0.3)",
+                  }}
+                />
+              </div>
             </Marker>
           );
         })}
@@ -237,36 +259,57 @@ export function PSANetworkMap({
                     </span>
                   </div>
                 </div>
+
+                {/* Ask AI Button */}
+                <button
+                  onClick={() => handleAskAI(selectedTerminal)}
+                  className="mt-3 w-full rounded-md bg-blue-600 px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                >
+                  Ask AI about this terminal
+                </button>
               </div>
             </div>
           </Popup>
         )}
       </MapGL>
 
-      {/* Legend */}
-      <div className="absolute bottom-4 left-4 bg-white rounded-lg shadow-lg p-4 max-w-xs">
-        <h4 className="font-semibold text-sm mb-2">{metricInfo?.label}</h4>
-        <p className="text-xs text-gray-600 mb-3">{metricInfo?.description}</p>
+      {/* Legend with Glassmorphism */}
+      <div className="absolute bottom-6 left-6 bg-white/90 backdrop-blur-md rounded-xl shadow-xl border border-gray-200/50 p-5 max-w-xs transition-all duration-300 hover:shadow-2xl">
+        <h4 className="font-bold text-sm mb-1.5 text-gray-900">
+          {metricInfo?.label}
+        </h4>
+        <p className="text-xs text-gray-600 mb-4 leading-relaxed">
+          {metricInfo?.description}
+        </p>
 
-        <div className="flex items-center justify-between mb-2">
-          <span className="text-xs text-gray-500">
-            {metricInfo?.format(min)}
-          </span>
+        <div className="space-y-2">
+          <div className="flex items-center justify-between text-xs font-medium text-gray-700">
+            <span className="px-2 py-1 bg-gray-100/80 rounded">
+              {metricInfo?.format(min)}
+            </span>
+            <span className="px-2 py-1 bg-gray-100/80 rounded">
+              {metricInfo?.format(max)}
+            </span>
+          </div>
+
           <div
-            className="flex-1 mx-2 h-3 rounded"
+            className="h-4 rounded-full shadow-inner relative overflow-hidden"
             style={{
               background: isHigherBetter
                 ? `linear-gradient(to right, rgb(${END_COLOR.r}, ${END_COLOR.g}, ${END_COLOR.b}), rgb(${START_COLOR.r}, ${START_COLOR.g}, ${START_COLOR.b}))`
                 : `linear-gradient(to right, rgb(${START_COLOR.r}, ${START_COLOR.g}, ${START_COLOR.b}), rgb(${END_COLOR.r}, ${END_COLOR.g}, ${END_COLOR.b}))`,
             }}
-          />
-          <span className="text-xs text-gray-500">
-            {metricInfo?.format(max)}
-          </span>
+          >
+            {/* Shine effect */}
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+          </div>
+
+          <p className="text-xs text-gray-500 text-center font-medium pt-1">
+            {isHigherBetter
+              ? "Lower ← → Higher (Better)"
+              : "Higher (Better) ← → Lower"}
+          </p>
         </div>
-        <p className="text-xs text-gray-500 text-center">
-          {isHigherBetter ? "Lower → Higher" : "Higher → Lower"}
-        </p>
       </div>
     </div>
   );
