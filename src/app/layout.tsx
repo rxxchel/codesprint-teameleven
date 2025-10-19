@@ -20,6 +20,11 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "FishAI",
   description: "FishAI is a chatbot that uses the Tools to answer questions.",
+  icons: {
+    icon: "/psa_logo.ico",
+    shortcut: "/psa_logo.ico",
+    apple: "/psa_logo.png",
+  },
 };
 
 export default async function RootLayout({

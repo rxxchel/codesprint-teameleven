@@ -242,36 +242,120 @@ Focus on being specific, data-driven, and providing practical insights that term
           animate={{ x: 0 }}
           exit={{ x: "100%" }}
           transition={{ type: "spring", damping: 25, stiffness: 200 }}
-          className="fixed right-0 top-0 h-full w-[400px] bg-background border-l border-border shadow-2xl z-50 flex flex-col"
+          className="fixed right-0 top-0 h-full w-[420px] bg-white/95 backdrop-blur-2xl border-l border-white/50 shadow-2xl z-50 flex flex-col"
         >
-          {/* Header */}
-          <div className="flex items-center justify-between p-4 border-b border-border bg-muted/30">
-            <div>
-              <h2 className="font-semibold text-lg">
-                {terminal?.name || "PSA Network Insights"}
-              </h2>
-              {terminal && (
-                <p className="text-xs text-muted-foreground">
-                  {terminal.country} • {terminal.region}
-                </p>
-              )}
+          {/* Header with Gradient */}
+          <div className="relative overflow-hidden">
+            {/* Gradient background */}
+            <div className="absolute inset-0 bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500"></div>
+
+            {/* Pattern overlay */}
+            <div className="absolute inset-0 opacity-10">
+              <div
+                className="absolute inset-0"
+                style={{
+                  backgroundImage: `radial-gradient(circle at 2px 2px, white 1px, transparent 0)`,
+                  backgroundSize: "32px 32px",
+                }}
+              ></div>
             </div>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={onClose}
-              className="hover:bg-muted"
-            >
-              <X className="h-4 w-4" />
-            </Button>
+
+            {/* Content */}
+            <div className="relative flex items-center justify-between p-5 backdrop-blur-sm">
+              <div className="flex items-center gap-3 flex-1 min-w-0">
+                {/* Icon */}
+                <div className="w-12 h-12 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center flex-shrink-0 shadow-lg border border-white/30">
+                  <svg
+                    className="w-6 h-6 text-white"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
+                    />
+                  </svg>
+                </div>
+
+                <div className="min-w-0 flex-1">
+                  <h2 className="font-bold text-lg text-white truncate">
+                    {terminal?.name || "PSA Network Insights"}
+                  </h2>
+                  {terminal && (
+                    <p className="text-xs text-white/90 flex items-center gap-1.5">
+                      <svg
+                        className="w-3 h-3 flex-shrink-0"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+                        />
+                      </svg>
+                      <span className="truncate">
+                        {terminal.country} • {terminal.region}
+                      </span>
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={onClose}
+                className="hover:bg-white/20 text-white flex-shrink-0 rounded-xl transition-all duration-300 backdrop-blur-sm border border-white/20"
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+
+            {/* Bottom gradient fade */}
+            <div className="absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-b from-transparent to-white/5"></div>
           </div>
 
           {/* Chat Messages */}
           <div
-            className="flex-1 overflow-y-auto p-4 space-y-4"
+            className="flex-1 overflow-y-auto p-5 space-y-4 bg-gradient-to-b from-gray-50/50 to-white/50"
             ref={containerRef}
             onScroll={handleScroll}
           >
+            {messages.length === 0 && (
+              <div className="flex items-center justify-center h-full">
+                <div className="text-center p-8 max-w-sm">
+                  <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center mx-auto mb-4 shadow-lg">
+                    <svg
+                      className="w-8 h-8 text-white"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M13 10V3L4 14h7v7l9-11h-7z"
+                      />
+                    </svg>
+                  </div>
+                  <h3 className="font-bold text-gray-900 mb-2">
+                    AI-Powered Terminal Insights
+                  </h3>
+                  <p className="text-sm text-gray-600 leading-relaxed">
+                    Review the pre-filled analysis request below and click send
+                    to get comprehensive insights about this terminal.
+                  </p>
+                </div>
+              </div>
+            )}
+
             {messages.map((message, index) => {
               const isLastMessage = messages.length - 1 === index;
               return (
@@ -301,7 +385,7 @@ Focus on being specific, data-driven, and providing practical insights that term
           </div>
 
           {/* Input Area */}
-          <div className="border-t border-border p-4 bg-muted/20">
+          <div className="border-t border-gray-200/80 p-4 bg-white/80 backdrop-blur-sm">
             <PromptInput
               input={input}
               threadId={threadId}

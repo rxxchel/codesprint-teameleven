@@ -25,15 +25,21 @@ export default function NetworkMapPage() {
   };
 
   return (
-    <div className="flex h-screen bg-gray-100 relative">
+    <div className="flex h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-purple-50/20 relative overflow-hidden">
+      {/* Decorative background elements */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute -top-1/2 -left-1/4 w-1/2 h-full bg-gradient-to-br from-blue-100/40 to-transparent rounded-full blur-3xl"></div>
+        <div className="absolute -bottom-1/2 -right-1/4 w-1/2 h-full bg-gradient-to-tl from-purple-100/40 to-transparent rounded-full blur-3xl"></div>
+      </div>
+
       {/* Left Sidebar Toggle Button (when collapsed) */}
       {!isLeftSidebarOpen && (
-        <div className="absolute top-4 left-4 z-40">
+        <div className="absolute top-6 left-6 z-40">
           <Button
             variant="default"
             size="icon"
             onClick={() => setIsLeftSidebarOpen(true)}
-            className="shadow-lg"
+            className="shadow-xl hover:shadow-2xl transition-all duration-300 bg-gradient-to-br from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 border-0"
           >
             <Menu className="h-4 w-4" />
           </Button>
@@ -42,25 +48,44 @@ export default function NetworkMapPage() {
 
       {/* Left Sidebar - Controls */}
       {isLeftSidebarOpen && (
-        <div className="w-80 p-4 overflow-y-auto bg-gray-50 relative">
-          <div className="absolute top-4 right-4">
+        <div className="w-80 p-5 overflow-y-auto bg-white/40 backdrop-blur-xl border-r border-white/50 relative z-30 transition-all duration-300">
+          <div className="absolute top-5 right-5 z-10">
             <Button
               variant="ghost"
               size="icon"
               onClick={() => setIsLeftSidebarOpen(false)}
-              className="hover:bg-gray-200"
+              className="hover:bg-white/80 backdrop-blur-sm transition-all duration-300 rounded-xl"
             >
               <X className="h-4 w-4" />
             </Button>
           </div>
 
-          <div className="mb-6 pr-10">
-            <h1 className="text-2xl font-bold text-gray-900 mb-2">
-              PSA Network Insights
-            </h1>
-            <p className="text-sm text-gray-600">
-              Global terminal performance visualization
-            </p>
+          <div className="mb-7 pr-12">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center shadow-lg">
+                <svg
+                  className="w-7 h-7 text-white"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
+                </svg>
+              </div>
+              <div>
+                <h1 className="text-2xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
+                  PSA Network Insights
+                </h1>
+                <p className="text-sm text-gray-600 font-medium">
+                  Global terminal performance
+                </p>
+              </div>
+            </div>
           </div>
 
           <MapControls
@@ -69,23 +94,70 @@ export default function NetworkMapPage() {
           />
 
           {selectedTerminal && (
-            <div className="mt-4 bg-white rounded-lg shadow-lg p-4">
-              <h3 className="font-semibold text-sm mb-2">Selected Terminal</h3>
-              <p className="font-bold">{selectedTerminal.name}</p>
-              <p className="text-xs text-gray-600">
+            <div className="mt-5 bg-gradient-to-br from-white/90 to-white/70 backdrop-blur-sm rounded-2xl shadow-xl border border-white/50 p-5 transition-all duration-300 animate-in slide-in-from-top">
+              <div className="flex items-center gap-2 mb-3">
+                <div className="w-1 h-5 bg-gradient-to-b from-blue-500 to-purple-500 rounded-full"></div>
+                <h3 className="font-bold text-sm text-gray-900">
+                  Selected Terminal
+                </h3>
+              </div>
+              <p className="font-bold text-lg text-gray-900 mb-1">
+                {selectedTerminal.name}
+              </p>
+              <p className="text-sm text-gray-600 flex items-center gap-1.5">
+                <svg
+                  className="w-4 h-4"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+                  />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
+                  />
+                </svg>
                 {selectedTerminal.country} • {selectedTerminal.region}
               </p>
             </div>
           )}
 
-          <div className="mt-4 p-4 bg-blue-50 rounded-lg">
-            <h4 className="font-semibold text-sm mb-2">About This Map</h4>
-            <p className="text-xs text-gray-700 leading-relaxed">
-              This interactive map visualizes the performance of PSA&apos;s 9
-              global terminals. Markers are color-coded and sized based on the
-              selected metric. Click any marker to view detailed metrics for
-              that terminal.
-            </p>
+          <div className="mt-5 p-5 bg-gradient-to-br from-blue-50/80 to-purple-50/80 backdrop-blur-sm rounded-2xl border border-blue-100/50 shadow-lg">
+            <div className="flex items-start gap-3">
+              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center flex-shrink-0 shadow-lg">
+                <svg
+                  className="w-5 h-5 text-white"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
+                </svg>
+              </div>
+              <div>
+                <h4 className="font-bold text-sm mb-2 text-gray-900">
+                  About This Map
+                </h4>
+                <p className="text-xs text-gray-700 leading-relaxed">
+                  This interactive map visualizes the performance of PSA&apos;s
+                  9 global terminals. Markers are color-coded and sized based on
+                  the selected metric. Click any marker to view detailed metrics
+                  for that terminal.
+                </p>
+              </div>
+            </div>
           </div>
         </div>
       )}
