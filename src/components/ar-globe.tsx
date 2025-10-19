@@ -41,6 +41,11 @@ export type VesselTrail = {
   carbonAbatementTonnes: number;
 };
 
+const SINGAPORE_LAT = 1.3521;
+const SINGAPORE_LNG = 103.8198;
+const BASE_ROTATION_X = -((SINGAPORE_LAT * Math.PI) / 180) * 0.9;
+const BASE_ROTATION_Y = -((SINGAPORE_LNG * Math.PI) / 180);
+
 export type ARVisualizationData = {
   ports: PortDatum[];
   trails: VesselTrail[];
@@ -60,6 +65,11 @@ type GlowObject = {
 
 type GlobeInstance = {
   pointsData: (data: PortDatum[]) => GlobeInstance;
+  labelsData?: (data: PortDatum[] | []) => GlobeInstance;
+  labelText?: (accessor: (point: PortDatum) => string) => GlobeInstance;
+  labelColor?: (accessor: (point: PortDatum) => string) => GlobeInstance;
+  labelSize?: (accessor: (point: PortDatum) => number) => GlobeInstance;
+  labelAltitude?: (accessor: (point: PortDatum) => number) => GlobeInstance;
   pointLat: (accessor: (point: PortDatum) => number) => GlobeInstance;
   pointLng: (accessor: (point: PortDatum) => number) => GlobeInstance;
   pointAltitude: (accessor: (point: PortDatum) => number) => GlobeInstance;
@@ -95,6 +105,7 @@ type GlobeInstance = {
   globeImageUrl: (url: string) => GlobeInstance;
   width?: (value: number) => GlobeInstance;
   height?: (value: number) => GlobeInstance;
+  globeScale?: (value: number) => GlobeInstance;
   resetProps?: () => GlobeInstance;
   _destructor?: () => void;
   getCoords?: (
@@ -136,7 +147,7 @@ export type ARGlobeProps = {
 };
 
 const EARTH_TEXTURE =
-  "https://unpkg.com/three-globe/example/img/earth-blue-marble.jpg";
+  "https://unpkg.com/three-globe/example/img/earth-night.jpg";
 
 export function ARGlobe({
   data,
@@ -154,6 +165,52 @@ export function ARGlobe({
   const modeRef = useRef<VisualizationMode>(mode);
   const glowObjectsRef = useRef<GlowObject[]>([]);
   const animationRef = useRef<number | null>(null);
+  const rotationOffsetRef = useRef({ x: 0, y: 0 });
+  const dragStateRef = useRef({
+    isDragging: false,
+    lastX: 0,
+    lastY: 0,
+    pointerId: 0,
+  });
+  const spinAnimationRef = useRef<number | null>(null);
+  const hasSpunRef = useRef(false);
+
+  const applyRotation = (globeInstance?: GlobeInstance | null) => {
+    const targetGlobe = globeInstance ?? globeRef.current;
+    if (!targetGlobe) return;
+    orientGlobe(targetGlobe, rotationOffsetRef.current);
+  };
+
+  const stopIntroSpin = () => {
+    if (spinAnimationRef.current) {
+      cancelAnimationFrame(spinAnimationRef.current);
+      spinAnimationRef.current = null;
+    }
+  };
+
+  const startIntroSpin = (globeInstance: GlobeInstance | null) => {
+    if (!globeInstance) return;
+    stopIntroSpin();
+    rotationOffsetRef.current = { x: 0, y: 0.32 };
+    applyRotation(globeInstance);
+    const start = performance.now();
+    const duration = 2200;
+
+    const animate = (time: number) => {
+      const elapsed = time - start;
+      const progress = Math.min(Math.max(elapsed / duration, 0), 1);
+      const eased = 1 - Math.pow(1 - progress, 3);
+      rotationOffsetRef.current.y = 0.32 * (1 - eased);
+      applyRotation(globeInstance);
+      if (progress < 1) {
+        spinAnimationRef.current = requestAnimationFrame(animate);
+      } else {
+        spinAnimationRef.current = null;
+      }
+    };
+
+    spinAnimationRef.current = requestAnimationFrame(animate);
+  };
 
   useEffect(() => {
     selectHandlerRef.current = onSelect;
@@ -208,18 +265,25 @@ export function ARGlobe({
 
         const width = containerRef.current.clientWidth;
         const height = containerRef.current.clientHeight;
+        const size =
+          Math.min(
+            width || Number.POSITIVE_INFINITY,
+            height || Number.POSITIVE_INFINITY,
+          ) ||
+          width ||
+          height ||
+          0;
 
         globe.resetProps?.();
-        if (width) {
-          globe.width?.(width);
-        }
-        if (height) {
-          globe.height?.(height);
+        if (size > 0) {
+          globe.width?.(size);
+          globe.height?.(size);
         }
 
         globe.pointsTransitionDuration?.(250);
         globe.arcsTransitionDuration?.(300);
         globe.pointResolution?.(24);
+        globe.globeScale?.(1.12);
 
         globe
           .globeImageUrl(EARTH_TEXTURE)
@@ -259,12 +323,18 @@ export function ARGlobe({
         globe.customLayerData([]);
         globeRef.current = globe;
         readyHandlerRef.current?.();
+        applyRotation(globe);
+        if (!hasSpunRef.current) {
+          startIntroSpin(globe);
+          hasSpunRef.current = true;
+        }
         applyVisualization(
           globe,
           modeRef.current,
           dataRef.current,
           selected ?? null,
           glowObjectsRef,
+          rotationOffsetRef.current,
         );
       } catch (error) {
         console.error("[AR] Failed to load globe-ar", error);
@@ -284,6 +354,7 @@ export function ARGlobe({
       if (glowObjectsRef.current.length) {
         glowObjectsRef.current = [];
       }
+      stopIntroSpin();
       if (globeRef.current?._destructor) {
         globeRef.current._destructor();
       }
@@ -306,11 +377,17 @@ export function ARGlobe({
     }
 
     const resize = (width: number, height: number) => {
-      if (width > 0) {
-        globe.width?.(width);
-      }
-      if (height > 0) {
-        globe.height?.(height);
+      const size =
+        Math.min(
+          width || Number.POSITIVE_INFINITY,
+          height || Number.POSITIVE_INFINITY,
+        ) ||
+        width ||
+        height ||
+        0;
+      if (size > 0) {
+        globe.width?.(size);
+        globe.height?.(size);
       }
     };
 
@@ -340,6 +417,7 @@ export function ARGlobe({
       data,
       selected ?? null,
       glowObjectsRef,
+      rotationOffsetRef.current,
     );
   }, [data, mode, selected]);
 
@@ -387,6 +465,63 @@ export function ARGlobe({
     };
   }, [mode]);
 
+  useEffect(() => {
+    const host = containerRef.current;
+    if (!host) return undefined;
+
+    const handlePointerDown = (event: PointerEvent) => {
+      dragStateRef.current.isDragging = true;
+      dragStateRef.current.lastX = event.clientX;
+      dragStateRef.current.lastY = event.clientY;
+      dragStateRef.current.pointerId = event.pointerId;
+      stopIntroSpin();
+      try {
+        host.setPointerCapture(event.pointerId);
+      } catch {
+        // Ignore errors from unsupported pointer capture.
+      }
+    };
+
+    const handlePointerMove = (event: PointerEvent) => {
+      if (!dragStateRef.current.isDragging || !globeRef.current) return;
+      const dx = event.clientX - dragStateRef.current.lastX;
+      const dy = event.clientY - dragStateRef.current.lastY;
+      dragStateRef.current.lastX = event.clientX;
+      dragStateRef.current.lastY = event.clientY;
+
+      rotationOffsetRef.current = {
+        x: clamp(rotationOffsetRef.current.x + dy * 0.003, -0.8, 0.8),
+        y: rotationOffsetRef.current.y + dx * 0.003,
+      };
+      applyRotation();
+    };
+
+    const handlePointerUp = (event: PointerEvent) => {
+      if (dragStateRef.current.pointerId === event.pointerId) {
+        dragStateRef.current.isDragging = false;
+        try {
+          host.releasePointerCapture(event.pointerId);
+        } catch {
+          // Ignore unsupported pointer capture release.
+        }
+      }
+    };
+
+    host.addEventListener("pointerdown", handlePointerDown);
+    host.addEventListener("pointermove", handlePointerMove);
+    host.addEventListener("pointerup", handlePointerUp);
+    host.addEventListener("pointercancel", handlePointerUp);
+    host.addEventListener("pointerleave", handlePointerUp);
+
+    return () => {
+      host.removeEventListener("pointerdown", handlePointerDown);
+      host.removeEventListener("pointermove", handlePointerMove);
+      host.removeEventListener("pointerup", handlePointerUp);
+      host.removeEventListener("pointercancel", handlePointerUp);
+      host.removeEventListener("pointerleave", handlePointerUp);
+    };
+  }, []);
+
   return (
     <div
       ref={containerRef}
@@ -401,7 +536,10 @@ function applyVisualization(
   dataset: ARVisualizationData,
   selected: string | null,
   glowObjectsRef: MutableRefObject<GlowObject[]>,
+  rotationOffsets: { x: number; y: number },
 ) {
+  orientGlobe(globe, rotationOffsets);
+
   switch (mode) {
     case VisualizationMode.GLOBAL_PERF_HEATMAP: {
       glowObjectsRef.current = [];
@@ -411,7 +549,11 @@ function applyVisualization(
       break;
     }
     case VisualizationMode.SUSTAINABILITY_OVERLAY: {
-      glowObjectsRef.current = applySustainabilityMode(globe, dataset);
+      glowObjectsRef.current = applySustainabilityMode(
+        globe,
+        dataset,
+        selected,
+      );
       break;
     }
     case VisualizationMode.VESSEL_TRAILS: {
@@ -432,23 +574,28 @@ function applyHeatmapMode(
 ) {
   globe.pointsData(ports);
   globe.arcsData([]);
+  globe.labelsData?.(ports);
+  globe.labelText?.((point) => point.name);
+  globe.labelAltitude?.(() => 0.12);
+  globe.labelSize?.(() => 1.25);
+  globe.labelColor?.(() => "#f8fafc");
 
   globe.pointRadius((point) => {
     const base = mapRange(
       clamp(point.assuredPortTimeRatio, 0, 1),
       0,
       1,
-      0.08,
-      0.24,
+      0.14,
+      0.32,
     );
     if (selected && point.id === selected) {
-      return base * 1.25;
+      return base * 1.35;
     }
     return base;
   });
 
   globe.pointAltitude((point) =>
-    mapRange(clamp(point.berthTimeHours, 0, 40), 0, 40, 0.05, 0.52),
+    mapRange(clamp(point.berthTimeHours, 0, 40), 0, 40, 0.18, 0.85),
   );
 
   globe.pointColor((point) =>
@@ -463,16 +610,24 @@ function applyHeatmapMode(
 function applySustainabilityMode(
   globe: GlobeInstance,
   dataset: ARVisualizationData,
+  selected: string | null,
 ) {
   const ports = dataset.ports;
   globe.arcsData([]);
   globe.pointsData(ports);
+  globe.labelsData?.(ports);
+  globe.labelText?.((point) => point.name);
+  globe.labelAltitude?.(() => 0.15);
+  globe.labelSize?.(() => 1.1);
+  globe.labelColor?.(() => "#ccfbf1");
 
   globe.pointRadius((point) =>
-    mapRange(clamp(point.carbonAbatementTonnes, 0, 0.5), 0, 0.5, 0.06, 0.16),
+    mapRange(clamp(point.carbonAbatementTonnes, 0, 0.5), 0, 0.5, 0.1, 0.22),
   );
-  globe.pointAltitude(() => 0.09);
-  globe.pointColor((point) => getSustainabilityColor(point));
+  globe.pointAltitude(() => 0.12);
+  globe.pointColor((point) =>
+    getSustainabilityColor(point, selected === point.id),
+  );
 
   if (globe.pointLabel) {
     globe.pointLabel((point) => formatSustainabilityTooltip(point));
@@ -560,9 +715,10 @@ function applyVesselTrailsMode(
   globe.customLayerData([]);
   globe.pointsData(ports);
   globe.arcsData(trails);
+  globe.labelsData?.([]);
 
-  globe.pointRadius((point) => (point.id === selected ? 0.12 : 0.08));
-  globe.pointAltitude(() => 0.06);
+  globe.pointRadius((point) => (point.id === selected ? 0.16 : 0.1));
+  globe.pointAltitude(() => 0.08);
   globe.pointColor((point) =>
     getAccuracyColor(point.arrivalAccuracy, point.id === selected),
   );
@@ -572,7 +728,7 @@ function applyVesselTrailsMode(
   }
 
   globe.arcAltitude(() => 0.28);
-  globe.arcStroke(() => 0.65);
+  globe.arcStroke(() => 0.95);
   globe.arcColor((trail) => getArcColor(trail, p90));
   globe.arcDashLength(() => 0.35);
   globe.arcDashGap(() => 0.65);
@@ -697,6 +853,19 @@ function getThree(): any | null {
   const win = window as RuntimeWindow;
   const three = win.THREE ?? win.AFRAME?.THREE;
   return (three as any) ?? null;
+}
+
+function orientGlobe(
+  globe: GlobeInstance,
+  offsets: { x: number; y: number } = { x: 0, y: 0 },
+) {
+  const target = globe as unknown as {
+    rotation?: { x: number; y: number; z: number };
+  };
+  if (!target.rotation) return;
+
+  target.rotation.x = BASE_ROTATION_X + offsets.x;
+  target.rotation.y = BASE_ROTATION_Y + offsets.y;
 }
 
 function styleScene(host: HTMLDivElement) {

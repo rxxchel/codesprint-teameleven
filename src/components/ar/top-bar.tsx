@@ -18,6 +18,7 @@ type TopBarProps = {
   isChatOpen: boolean;
   visualizationMode: VisualizationMode;
   onModeChange: (mode: VisualizationMode) => void;
+  modeSummary?: string | null;
 };
 
 const toneClasses: Record<StatusTone, string> = {
@@ -33,13 +34,14 @@ export function TopBar({
   isChatOpen,
   visualizationMode,
   onModeChange,
+  modeSummary,
 }: TopBarProps) {
   const prefersReducedMotion = useReducedMotion();
 
   return (
     <div className="pointer-events-none fixed inset-x-0 top-0 z-40 flex justify-center px-3">
       <motion.div
-        className="pointer-events-auto flex w-full max-w-3xl items-center justify-between gap-4 rounded-2xl border border-white/20 bg-white/15 px-5 py-3 text-sm text-white shadow-lg backdrop-blur-xl"
+        className="pointer-events-auto flex w-full max-w-3xl flex-col gap-4 rounded-2xl border border-white/20 bg-white/15 px-5 py-4 text-sm text-white shadow-lg backdrop-blur-xl sm:flex-row sm:items-center sm:justify-between sm:gap-5 sm:py-3"
         initial={prefersReducedMotion ? false : { opacity: 0, y: -12 }}
         animate={
           prefersReducedMotion
@@ -54,14 +56,17 @@ export function TopBar({
           marginTop: "calc(env(safe-area-inset-top, 0px) + 12px)",
         }}
       >
-        <div className="flex min-w-0 flex-1 flex-col gap-1">
-          <span className="text-base font-semibold tracking-tight text-white">
+        <div className="flex min-w-0 flex-1 flex-col gap-2">
+          <span className="text-lg font-semibold tracking-tight text-white sm:text-base">
             Global Insights
           </span>
           <div className="flex flex-wrap items-center gap-2 text-xs text-white/70">
+            <span className="text-white/70">
+              Reality layer for port performance
+            </span>
             <span
               className={cn(
-                "inline-flex items-center gap-2 rounded-full border border-white/15 px-2.5 py-0.5 font-medium",
+                "inline-flex items-center gap-2 rounded-full border border-white/15 px-3 py-1 font-medium",
                 toneClasses[status],
               )}
             >
@@ -80,14 +85,17 @@ export function TopBar({
           </div>
         </div>
 
-        <div className="flex flex-shrink-0 items-center gap-3">
-          <label className="pointer-events-auto flex flex-col items-start text-left">
+        <div className="flex flex-col items-stretch gap-2 sm:flex-row sm:items-center sm:gap-4">
+          <label className="pointer-events-auto flex flex-col items-start text-left sm:min-w-[220px]">
+            <span className="text-[11px] uppercase tracking-wide text-white/60">
+              Visualization
+            </span>
             <select
               value={visualizationMode}
               onChange={(event) =>
                 onModeChange(event.target.value as VisualizationMode)
               }
-              className="mt-1 h-9 min-w-[200px] rounded-full border border-white/30 bg-white/10 px-3 text-sm font-medium text-white shadow-xs transition hover:bg-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70"
+              className="mt-1 h-10 w-full rounded-full border border-white/30 bg-white/10 px-3 text-sm font-medium text-white shadow-xs transition hover:bg-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70"
             >
               {VISUALIZATION_MODE_OPTIONS.map((option) => (
                 <option key={option.value} value={option.value}>
@@ -96,6 +104,11 @@ export function TopBar({
               ))}
             </select>
           </label>
+          {modeSummary ? (
+            <span className="pointer-events-auto rounded-full border border-white/15 bg-white/10 px-3 py-2 text-xs font-medium text-white/80 shadow-xs sm:whitespace-nowrap">
+              {modeSummary}
+            </span>
+          ) : null}
 
           <button
             type="button"
