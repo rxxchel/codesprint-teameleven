@@ -3,8 +3,7 @@
 import { motion, useReducedMotion } from "framer-motion";
 
 import { Button } from "@/components/ui/button";
-
-import type { PortDatum } from "../ar-globe";
+import type { PortDatum } from "@/components/ar-globe";
 
 type PortInfoCardProps = {
   port: PortDatum;
@@ -14,38 +13,52 @@ type PortInfoCardProps = {
 
 export function PortInfoCard({ port, onClose, onAskAI }: PortInfoCardProps) {
   const prefersReducedMotion = useReducedMotion();
-  const { metrics } = port;
 
-  const metricItems = [
-    {
-      label: "Arrival Accuracy Δ (week)",
-      value: formatDelta(metrics.arrival_accuracy_delta_week),
-    },
+  const accuracyBadge = getAccuracyBadge(port.arrivalAccuracy);
+
+  const primaryMetrics = [
     {
       label: "Assured Port Time",
-      value: `${metrics.assured_port_time_pct.toFixed(1)}%`,
+      value: `${(clamp(port.assuredPortTimeRatio, 0, 1) * 100).toFixed(1)}%`,
     },
     {
-      label: "Berth Time Variance",
-      value: `${metrics.berth_time_variance_h.toFixed(1)} h`,
+      label: "Berth Time",
+      value: `${port.berthTimeHours.toFixed(1)} h`,
     },
     {
-      label: "Throughput",
-      value: `${Intl.NumberFormat("en-US").format(metrics.throughput_teu_day)} TEU/day`,
+      label: "Bunker Saved",
+      value: formatCurrency(port.bunkerSavedUsd),
+    },
+    {
+      label: "Carbon Abatement",
+      value: `${port.carbonAbatementTonnes.toFixed(3)} t`,
     },
   ];
 
-  const kpiBadge = getTrend(metrics.arrival_accuracy_delta_week);
-  const overallKpi = getTrend(port.kpi);
+  const secondaryMetrics = [
+    {
+      label: "Arrival Variance",
+      value: formatHours(port.arrivalVarianceHours),
+    },
+    {
+      label: "Wait Time (ATB − BTR)",
+      value: formatHours(port.waitTimeAtbBtrHours),
+    },
+  ];
+
+  const lastUpdatedLabel = formatTimestamp(port.lastUpdated);
 
   const handleAsk = () => {
     const prompt = [
-      `Explain this week's performance for ${port.name}.`,
-      `arrival_accuracy_delta_week=${metrics.arrival_accuracy_delta_week.toFixed(2)},`,
-      `assured_port_time_pct=${metrics.assured_port_time_pct.toFixed(1)}%,`,
-      `berth_time_variance_h=${metrics.berth_time_variance_h.toFixed(1)}h,`,
-      `throughput_teu_day=${metrics.throughput_teu_day} TEU/day.`,
-      "Give 2 actions and 1 risk, concise.",
+      `Summarize recent berth performance for ${port.name}.`,
+      `arrival_accuracy=${port.arrivalAccuracy ?? "unknown"},`,
+      `assured_port_time_pct=${(clamp(port.assuredPortTimeRatio, 0, 1) * 100).toFixed(1)},`,
+      `berth_time_hours=${port.berthTimeHours.toFixed(1)},`,
+      `wait_time_atb_btr=${formatNumber(port.waitTimeAtbBtrHours)},`,
+      `arrival_variance=${formatNumber(port.arrivalVarianceHours)},`,
+      `bunker_saved_usd=${port.bunkerSavedUsd.toFixed(0)},`,
+      `carbon_abatement_tonnes=${port.carbonAbatementTonnes.toFixed(3)}.`,
+      "Provide two improvement ideas and one risk to monitor.",
     ].join(" ");
     onAskAI(prompt);
   };
@@ -60,14 +73,14 @@ export function PortInfoCard({ port, onClose, onAskAI }: PortInfoCardProps) {
           onClose();
         }
       }}
-      initial={prefersReducedMotion ? false : { opacity: 0, y: 24 }}
-      animate={prefersReducedMotion ? false : { opacity: 1, y: 0 }}
-      exit={prefersReducedMotion ? false : { opacity: 0, y: 24 }}
+      initial={prefersReducedMotion ? undefined : { opacity: 0, y: 24 }}
+      animate={prefersReducedMotion ? undefined : { opacity: 1, y: 0 }}
+      exit={prefersReducedMotion ? undefined : { opacity: 0, y: 24 }}
       transition={{
         duration: prefersReducedMotion ? 0 : 0.35,
         ease: "easeOut",
       }}
-      className="relative w-full max-w-xl rounded-2xl border border-white/20 bg-white/15 p-6 text-white shadow-lg backdrop-blur-xl pointer-events-auto"
+      className="pointer-events-auto relative w-full max-w-xl rounded-2xl border border-white/20 bg-white/15 p-6 text-white shadow-lg backdrop-blur-xl"
     >
       <div className="absolute left-1/2 top-2 h-1.5 w-12 -translate-x-1/2 rounded-full bg-white/40" />
 
@@ -76,23 +89,36 @@ export function PortInfoCard({ port, onClose, onAskAI }: PortInfoCardProps) {
           <p className="text-lg font-semibold text-white">
             Port of {port.name}
           </p>
-          <p className="text-sm text-white/70">Live KPIs</p>
+          <p className="text-sm text-white/70">
+            {port.latestVessel
+              ? `Latest vessel: ${port.latestVessel}`
+              : "Latest vessel not reported"}
+          </p>
+          {port.latestRotation && (
+            <p className="text-xs text-white/50">
+              Rotation {port.latestRotation}
+            </p>
+          )}
+          {lastUpdatedLabel && (
+            <p className="mt-2 text-xs text-white/50">
+              Updated {lastUpdatedLabel}
+            </p>
+          )}
         </div>
 
         <div
-          className={`inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-1 text-xs font-medium ${overallKpi.textClass}`}
+          className={`inline-flex items-center gap-2 rounded-full border border-white/20 px-3 py-1 text-xs font-medium ${accuracyBadge.textClass}`}
         >
           <span
-            className={`h-2.5 w-2.5 rounded-full ${overallKpi.dotClass}`}
+            className={`h-2.5 w-2.5 rounded-full ${accuracyBadge.dotClass}`}
             aria-hidden="true"
           />
-          {overallKpi.prefix}
-          {Math.abs(port.kpi).toFixed(2)}
+          {accuracyBadge.label}
         </div>
       </div>
 
       <dl className="mt-6 grid grid-cols-2 gap-4">
-        {metricItems.map((item) => (
+        {primaryMetrics.map((item) => (
           <div
             key={item.label}
             className="rounded-xl border border-white/15 bg-white/10 px-3 py-3"
@@ -107,13 +133,21 @@ export function PortInfoCard({ port, onClose, onAskAI }: PortInfoCardProps) {
         ))}
       </dl>
 
-      <div className="mt-6 inline-flex items-center gap-2 text-sm text-white/70">
-        <span className={`font-medium ${kpiBadge.textClass}`}>
-          {kpiBadge.prefix}
-          {Math.abs(metrics.arrival_accuracy_delta_week).toFixed(2)}
-        </span>
-        arrival accuracy change this week
-      </div>
+      <dl className="mt-4 grid grid-cols-2 gap-4">
+        {secondaryMetrics.map((item) => (
+          <div
+            key={item.label}
+            className="rounded-xl border border-white/10 bg-black/10 px-3 py-3"
+          >
+            <dt className="text-[11px] uppercase tracking-wide text-white/50">
+              {item.label}
+            </dt>
+            <dd className="mt-1 text-sm font-medium text-white">
+              {item.value}
+            </dd>
+          </div>
+        ))}
+      </dl>
 
       <Button
         type="button"
@@ -121,38 +155,70 @@ export function PortInfoCard({ port, onClose, onAskAI }: PortInfoCardProps) {
         className="mt-6 w-full rounded-full border border-white/20 bg-white/20 py-5 text-base font-semibold text-white hover:bg-white/30"
         aria-label={`Ask AI about Port of ${port.name}`}
       >
-        Ask AI about this terminal
+        Ask Copilot about this terminal
       </Button>
     </motion.div>
   );
 }
 
-function getTrend(value: number) {
-  if (value > 0.001) {
+function getAccuracyBadge(flag: PortDatum["arrivalAccuracy"]) {
+  if (flag === "Y") {
     return {
-      prefix: "▲",
-      textClass: "text-emerald-300",
+      label: "On-time arrival",
+      textClass: "text-emerald-200",
       dotClass: "bg-emerald-300",
     };
   }
-  if (value < -0.001) {
+  if (flag === "N") {
     return {
-      prefix: "▼",
-      textClass: "text-rose-300",
+      label: "Delay risk",
+      textClass: "text-rose-200",
       dotClass: "bg-rose-300",
     };
   }
   return {
-    prefix: "–",
+    label: "Accuracy unknown",
     textClass: "text-zinc-200",
     dotClass: "bg-zinc-300",
   };
 }
 
-function formatDelta(value: number) {
-  const trend = getTrend(value);
-  const formatted = `${trend.prefix}${Math.abs(value).toFixed(2)}`;
-  return formatted;
+function clamp(value: number, min: number, max: number) {
+  return Math.min(Math.max(value, min), max);
+}
+
+function formatCurrency(value: number) {
+  if (!Number.isFinite(value) || value === 0) return "$0";
+  if (Math.abs(value) >= 1000000) {
+    return `$${(value / 1_000_000).toFixed(1)}M`;
+  }
+  if (Math.abs(value) >= 1000) {
+    return `$${(value / 1000).toFixed(1)}k`;
+  }
+  return `$${value.toFixed(0)}`;
+}
+
+function formatHours(value: number | null) {
+  if (value === null || Number.isNaN(value)) return "—";
+  const rounded = value.toFixed(1);
+  return `${rounded} h`;
+}
+
+function formatNumber(value: number | null) {
+  if (value === null || Number.isNaN(value)) return "null";
+  return value.toFixed(2);
+}
+
+function formatTimestamp(timestamp: number | null) {
+  if (!timestamp) return null;
+  const formatter = new Intl.DateTimeFormat("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  });
+  return formatter.format(new Date(timestamp));
 }
 
 export default PortInfoCard;

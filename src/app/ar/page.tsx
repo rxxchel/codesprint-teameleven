@@ -9,7 +9,9 @@ import { toast } from "sonner";
 import ChatSheet from "@/components/ar/chat-sheet";
 import PortInfoCard from "@/components/ar/port-info-card";
 import TopBar from "@/components/ar/top-bar";
-import type { PortDatum } from "@/components/ar-globe";
+import type { ARVisualizationData, PortDatum } from "@/components/ar-globe";
+import { VisualizationMode } from "@/lib/ar-visualization";
+import { BU_COORDINATES, PORT_COORDINATES } from "@/lib/port-geo";
 
 const ARGlobe = dynamic(() => import("@/components/ar-globe"), {
   ssr: false,
@@ -22,155 +24,180 @@ const ARGlobe = dynamic(() => import("@/components/ar-globe"), {
 
 const markerHref = "https://ar-js-org.github.io/AR.js/data/images/HIRO.jpg";
 
-const fallbackData: PortDatum[] = [
+type RawPortRow = Record<string, unknown>;
+
+const FALLBACK_ROWS: RawPortRow[] = [
   {
-    name: "Busan",
-    lat: 35.1796,
-    lng: 129.0756,
-    kpi: -0.05,
-    metrics: {
-      arrival_accuracy_delta_week: -0.05,
-      assured_port_time_pct: 92.1,
-      berth_time_variance_h: 1.4,
-      throughput_teu_day: 18500,
-    },
+    BU: "PANAMA CITY",
+    Vessel: "MV RAPID VOYAGER",
+    "Rotation No.": "20251001",
+    From: "JPTYO",
+    To: "USSEA",
+    "Final BTR (Local Time)": "23-04-25 7:35",
+    "Arrival Variance (within 4h target)": "3.9",
+    "Arrival Accuracy (Final BTR)": "Y",
+    "Wait Time (Hours): ATB-BTR": "-4.92",
+    "Berth Time (hours): ATU - ATB": "31.26",
+    "Assured Port Time Achieved (%)": "0.25",
+    "Bunker Saved (USD)": "35776.21",
+    "Carbon Abatement (Tonnes)": "0.204",
   },
   {
-    name: "Singapore",
-    lat: 1.3521,
-    lng: 103.8198,
-    kpi: 0.08,
-    metrics: {
-      arrival_accuracy_delta_week: 0.08,
-      assured_port_time_pct: 88.3,
-      berth_time_variance_h: 3.1,
-      throughput_teu_day: 29000,
-    },
+    BU: "LAEM CHABANG",
+    Vessel: "MV WESTERN AURORA",
+    "Rotation No.": "20251003",
+    From: "JPTYO",
+    To: "ESALG",
+    "Final BTR (Local Time)": "14-08-25 9:57",
+    "Arrival Variance (within 4h target)": "3.29",
+    "Arrival Accuracy (Final BTR)": "Y",
+    "Wait Time (Hours): ATB-BTR": "-8.83",
+    "Berth Time (hours): ATU - ATB": "8",
+    "Assured Port Time Achieved (%)": "0.1549",
+    "Bunker Saved (USD)": "19575.91",
+    "Carbon Abatement (Tonnes)": "0.135",
   },
   {
-    name: "Shanghai",
-    lat: 31.2304,
-    lng: 121.4737,
-    kpi: -0.12,
-    metrics: {
-      arrival_accuracy_delta_week: -0.12,
-      assured_port_time_pct: 95.4,
-      berth_time_variance_h: 0.9,
-      throughput_teu_day: 32500,
-    },
+    BU: "DAMMAM",
+    Vessel: "MV TRUST SEAL",
+    "Rotation No.": "20251005",
+    From: "JPOSA",
+    To: "ITGIT",
+    "Final BTR (Local Time)": "13-03-25 0:40",
+    "Arrival Variance (within 4h target)": "3.65",
+    "Arrival Accuracy (Final BTR)": "Y",
+    "Wait Time (Hours): ATB-BTR": "5.97",
+    "Berth Time (hours): ATU - ATB": "42.38",
+    "Assured Port Time Achieved (%)": "0.1327",
+    "Bunker Saved (USD)": "18299.25",
+    "Carbon Abatement (Tonnes)": "0.232",
   },
   {
-    name: "Rotterdam",
-    lat: 51.9244,
-    lng: 4.4777,
-    kpi: 0.04,
-    metrics: {
-      arrival_accuracy_delta_week: 0.04,
-      assured_port_time_pct: 86.7,
-      berth_time_variance_h: 2.4,
-      throughput_teu_day: 21000,
-    },
+    BU: "BUSAN",
+    Vessel: "MV BRIGHT DOLPHIN",
+    "Rotation No.": "20251006",
+    From: "USSEA",
+    To: "JPTYO",
+    "Final BTR (Local Time)": "29-03-25 8:53",
+    "Arrival Variance (within 4h target)": "0.39",
+    "Arrival Accuracy (Final BTR)": "Y",
+    "Wait Time (Hours): ATB-BTR": "5.63",
+    "Berth Time (hours): ATU - ATB": "30.59",
+    "Assured Port Time Achieved (%)": "0.1767",
+    "Bunker Saved (USD)": "15986.41",
+    "Carbon Abatement (Tonnes)": "0.162",
   },
   {
-    name: "Los Angeles",
-    lat: 33.7405,
-    lng: -118.276,
-    kpi: 0.11,
-    metrics: {
-      arrival_accuracy_delta_week: 0.11,
-      assured_port_time_pct: 82.6,
-      berth_time_variance_h: 4.8,
-      throughput_teu_day: 24500,
-    },
+    BU: "JAKARTA",
+    Vessel: "MV EMERALD ORCA",
+    "Rotation No.": "20251007",
+    From: "GRPIR",
+    To: "KRPUS",
+    "Final BTR (Local Time)": "13-08-25 12:13",
+    "Arrival Variance (within 4h target)": "0.81",
+    "Arrival Accuracy (Final BTR)": "Y",
+    "Wait Time (Hours): ATB-BTR": "1.86",
+    "Berth Time (hours): ATU - ATB": "28.51",
+    "Assured Port Time Achieved (%)": "0.2363",
+    "Bunker Saved (USD)": "30093.78",
+    "Carbon Abatement (Tonnes)": "0.298",
   },
   {
-    name: "Hamburg",
-    lat: 53.5511,
-    lng: 9.9937,
-    kpi: -0.09,
-    metrics: {
-      arrival_accuracy_delta_week: -0.09,
-      assured_port_time_pct: 91.2,
-      berth_time_variance_h: 1.7,
-      throughput_teu_day: 15800,
-    },
+    BU: "SINGAPORE",
+    Vessel: "MV RAPID HORIZON",
+    "Rotation No.": "20251009",
+    From: "VNSGN",
+    To: "DEHAM",
+    "Final BTR (Local Time)": "26-08-25 15:01",
+    "Arrival Variance (within 4h target)": "3.55",
+    "Arrival Accuracy (Final BTR)": "Y",
+    "Wait Time (Hours): ATB-BTR": "-6.72",
+    "Berth Time (hours): ATU - ATB": "50.84",
+    "Assured Port Time Achieved (%)": "0.0849",
+    "Bunker Saved (USD)": "15058.17",
+    "Carbon Abatement (Tonnes)": "0.162",
   },
   {
-    name: "Dubai (Jebel Ali)",
-    lat: 25.0108,
-    lng: 55.0618,
-    kpi: -0.03,
-    metrics: {
-      arrival_accuracy_delta_week: -0.03,
-      assured_port_time_pct: 93.7,
-      berth_time_variance_h: 1.1,
-      throughput_teu_day: 27000,
-    },
+    BU: "TIANJIN",
+    Vessel: "MV ATLANTIC HERON",
+    "Rotation No.": "20251011",
+    From: "CNXMN",
+    To: "CNYTN",
+    "Final BTR (Local Time)": "29-01-25 17:05",
+    "Arrival Variance (within 4h target)": "2.17",
+    "Arrival Accuracy (Final BTR)": "Y",
+    "Wait Time (Hours): ATB-BTR": "4.55",
+    "Berth Time (hours): ATU - ATB": "30.48",
+    "Assured Port Time Achieved (%)": "0.1207",
+    "Bunker Saved (USD)": "971.07",
+    "Carbon Abatement (Tonnes)": "0.1",
   },
   {
-    name: "Antwerp-Bruges",
-    lat: 51.2637,
-    lng: 4.4121,
-    kpi: 0.06,
-    metrics: {
-      arrival_accuracy_delta_week: 0.06,
-      assured_port_time_pct: 84.5,
-      berth_time_variance_h: 3.3,
-      throughput_teu_day: 19800,
-    },
+    BU: "MUMBAI",
+    Vessel: "MV WESTERN CORAL",
+    "Rotation No.": "20251012",
+    From: "ESALG",
+    To: "VNSGN",
+    "Final BTR (Local Time)": "20-04-25 13:48",
+    "Arrival Variance (within 4h target)": "5.48",
+    "Arrival Accuracy (Final BTR)": "N",
+    "Wait Time (Hours): ATB-BTR": "2.23",
+    "Berth Time (hours): ATU - ATB": "45.26",
+    "Assured Port Time Achieved (%)": "0.235",
+    "Bunker Saved (USD)": "32472.13",
+    "Carbon Abatement (Tonnes)": "0.231",
   },
   {
-    name: "Santos",
-    lat: -23.9618,
-    lng: -46.328,
-    kpi: 0.02,
-    metrics: {
-      arrival_accuracy_delta_week: 0.02,
-      assured_port_time_pct: 89.6,
-      berth_time_variance_h: 2.1,
-      throughput_teu_day: 13400,
-    },
-  },
-  {
-    name: "Hong Kong",
-    lat: 22.3193,
-    lng: 114.1694,
-    kpi: -0.07,
-    metrics: {
-      arrival_accuracy_delta_week: -0.07,
-      assured_port_time_pct: 94.9,
-      berth_time_variance_h: 1.3,
-      throughput_teu_day: 27600,
-    },
-  },
-  {
-    name: "New York/New Jersey",
-    lat: 40.6681,
-    lng: -74.0451,
-    kpi: 0.09,
-    metrics: {
-      arrival_accuracy_delta_week: 0.09,
-      assured_port_time_pct: 83.9,
-      berth_time_variance_h: 4.1,
-      throughput_teu_day: 20500,
-    },
+    BU: "ANTWERP",
+    Vessel: "MV GOLDEN DOLPHIN",
+    "Rotation No.": "20251030",
+    From: "CNSHA",
+    To: "USSEA",
+    "Final BTR (Local Time)": "09-03-25 13:21",
+    "Arrival Variance (within 4h target)": "1.88",
+    "Arrival Accuracy (Final BTR)": "Y",
+    "Wait Time (Hours): ATB-BTR": "8.62",
+    "Berth Time (hours): ATU - ATB": "37.82",
+    "Assured Port Time Achieved (%)": "0.0834",
+    "Bunker Saved (USD)": "14546.92",
+    "Carbon Abatement (Tonnes)": "0.1",
   },
 ];
+
+const fallbackVisualizationData = normalizeVisualizationData(FALLBACK_ROWS);
 
 export default function ARPage() {
   const [scriptsReady, setScriptsReady] = useState(false);
   const [sceneReady, setSceneReady] = useState(false);
-  const [ports, setPorts] = useState<PortDatum[]>(fallbackData);
+  const [visualizationData, setVisualizationData] =
+    useState<ARVisualizationData>(fallbackVisualizationData);
+  const [visualizationMode, setVisualizationMode] = useState<VisualizationMode>(
+    VisualizationMode.GLOBAL_PERF_HEATMAP,
+  );
   const [status, setStatus] = useState<"loading" | "ready" | "error">(
     "loading",
   );
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [reloadToken, setReloadToken] = useState(0);
   const [scriptError, setScriptError] = useState<string | null>(null);
-  const [selectedPort, setSelectedPort] = useState<PortDatum | null>(null);
+  const [selectedPortId, setSelectedPortId] = useState<string | null>(null);
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [chatPrefill, setChatPrefill] = useState<string | null>(null);
   const [chatContextPort, setChatContextPort] = useState<string | null>(null);
+
+  const selectedPort = useMemo(() => {
+    if (!selectedPortId) return null;
+    return (
+      visualizationData.ports.find((port) => port.id === selectedPortId) ?? null
+    );
+  }, [selectedPortId, visualizationData]);
+
+  useEffect(() => {
+    if (!selectedPortId) return;
+    if (!visualizationData.ports.some((port) => port.id === selectedPortId)) {
+      setSelectedPortId(null);
+    }
+  }, [selectedPortId, visualizationData]);
 
   useEffect(() => {
     let isCancelled = false;
@@ -297,7 +324,7 @@ export default function ARPage() {
       setErrorMessage(null);
 
       try {
-        const response = await fetch("/data/reference-sample-data.json", {
+        const response = await fetch("/api/ar/reference-data", {
           cache: "no-store",
         });
 
@@ -306,12 +333,21 @@ export default function ARPage() {
         }
 
         const json = await response.json();
-        const parsedPorts = normalizePorts(json?.ports);
+        const normalized = normalizeVisualizationData(json);
 
         if (isCancelled) return;
 
-        setPorts(parsedPorts.length > 0 ? parsedPorts : fallbackData);
-        setStatus("ready");
+        if (normalized.ports.length > 0) {
+          setVisualizationData(normalized);
+          setStatus("ready");
+        } else {
+          setVisualizationData(fallbackVisualizationData);
+          setStatus("error");
+          setErrorMessage("Live dataset returned no port records.");
+          toast.error(
+            "Live dataset returned no port records, showing sample data.",
+          );
+        }
       } catch (error) {
         if (isCancelled) return;
         console.error("Failed to load AR port data", error);
@@ -319,7 +355,7 @@ export default function ARPage() {
           error instanceof Error ? error.message : "Unknown error";
         setErrorMessage(message);
         toast.error("Port data unavailable, showing cached sample data.");
-        setPorts(fallbackData);
+        setVisualizationData(fallbackVisualizationData);
         setStatus("error");
       }
     }
@@ -375,7 +411,7 @@ export default function ARPage() {
     switch (status) {
       case "ready":
         return {
-          label: "Live KPI feed",
+          label: "Live feed",
           tone: "ready" as const,
         };
       case "error":
@@ -392,12 +428,12 @@ export default function ARPage() {
   }, [status]);
 
   const handlePortSelect = (port: PortDatum) => {
-    setSelectedPort(port);
+    setSelectedPortId(port.id);
     setChatContextPort(port.name);
   };
 
   const closePortCard = () => {
-    setSelectedPort(null);
+    setSelectedPortId(null);
   };
 
   const handleAskAI = (prefill: string, portName: string) => {
@@ -407,12 +443,13 @@ export default function ARPage() {
   };
 
   return (
-    <main className="relative min-h-screen overflow-hidden bg-black text-white">
+    <main className="relative min-h-screen overflow-hidden bg-black/90 text-white">
       <div className="fixed inset-0 h-[100dvh] w-[100dvw] overflow-hidden">
         {scriptsReady && !scriptError ? (
           <ARGlobe
-            data={ports}
-            selected={selectedPort?.name}
+            data={visualizationData}
+            mode={visualizationMode}
+            selected={selectedPortId}
             onSelect={handlePortSelect}
             onReady={() => setSceneReady(true)}
           />
@@ -429,6 +466,11 @@ export default function ARPage() {
         status={dataBadge.tone}
         onOpenChat={() => setIsChatOpen(true)}
         isChatOpen={isChatOpen}
+        visualizationMode={visualizationMode}
+        onModeChange={(mode) => {
+          setVisualizationMode(mode);
+          setSelectedPortId(null);
+        }}
       />
 
       <AnimatePresence>
@@ -548,72 +590,276 @@ function FooterPanel({
   );
 }
 
-function normalizePorts(raw: unknown): PortDatum[] {
-  if (!Array.isArray(raw)) return [];
+type AccuracyFlag = PortDatum["arrivalAccuracy"];
 
-  return raw
-    .map((entry) => mapPort(entry))
-    .filter((port): port is PortDatum => port !== null);
-}
+function normalizeVisualizationData(raw: unknown): ARVisualizationData {
+  const dataset = Array.isArray(raw)
+    ? raw
+    : Array.isArray((raw as { ports?: unknown }).ports)
+      ? (raw as { ports: unknown[] }).ports
+      : null;
 
-function mapPort(entry: unknown): PortDatum | null {
-  if (!entry || typeof entry !== "object") return null;
-
-  const { name, lat, lng, kpi, metrics } = entry as {
-    name?: unknown;
-    lat?: unknown;
-    lng?: unknown;
-    kpi?: unknown;
-    metrics?: Record<string, unknown>;
-  };
-
-  if (typeof name !== "string") return null;
-
-  const latitude = Number(lat);
-  const longitude = Number(lng);
-  const kpiValue = Number(kpi);
-
-  if (
-    !Number.isFinite(latitude) ||
-    !Number.isFinite(longitude) ||
-    !Number.isFinite(kpiValue)
-  ) {
-    return null;
+  if (!dataset) {
+    return {
+      ports: [],
+      trails: [],
+      bunkerSavedStats: { median: 0, p90: 1 },
+    };
   }
 
-  const metricsObj = metrics ?? {};
-  const arrival = Number(
-    (metricsObj as Record<string, unknown>).arrival_accuracy_delta_week,
-  );
-  const assured = Number(
-    (metricsObj as Record<string, unknown>).assured_port_time_pct,
-  );
-  const variance = Number(
-    (metricsObj as Record<string, unknown>).berth_time_variance_h,
-  );
-  const throughput = Number(
-    (metricsObj as Record<string, unknown>).throughput_teu_day,
-  );
+  const parsedRows = dataset
+    .map((entry, index) => parseRow(entry, index))
+    .filter((row): row is ParsedRow => row !== null);
 
-  if (
-    !Number.isFinite(arrival) ||
-    !Number.isFinite(assured) ||
-    !Number.isFinite(variance) ||
-    !Number.isFinite(throughput)
-  ) {
-    return null;
+  if (parsedRows.length === 0) {
+    return {
+      ports: [],
+      trails: [],
+      bunkerSavedStats: { median: 0, p90: 1 },
+    };
+  }
+
+  const portMap = new Map<string, { row: ParsedRow; count: number }>();
+
+  for (const row of parsedRows) {
+    const coords = BU_COORDINATES[row.bu];
+    if (!coords) continue;
+
+    const existing = portMap.get(row.bu);
+    if (!existing) {
+      portMap.set(row.bu, { row, count: 1 });
+    } else {
+      const existingTimestamp = existing.row.finalBtrMs ?? -Infinity;
+      const incomingTimestamp = row.finalBtrMs ?? -Infinity;
+      if (incomingTimestamp > existingTimestamp) {
+        existing.row = row;
+      }
+      existing.count += 1;
+    }
+  }
+
+  const ports: PortDatum[] = [];
+
+  for (const [bu, payload] of portMap) {
+    const coords = BU_COORDINATES[bu];
+    if (!coords) continue;
+
+    const { row, count } = payload;
+
+    ports.push({
+      id: bu,
+      name: titleCase(bu),
+      code: coords.code,
+      lat: coords.lat,
+      lng: coords.lng,
+      arrivalAccuracy: row.arrivalAccuracy,
+      assuredPortTimeRatio: clampNumber(row.assuredRatio, 0, 1, 0),
+      berthTimeHours: clampNumber(row.berthTimeHours, 0, 80, 0),
+      bunkerSavedUsd: clampNumber(
+        row.bunkerSavedUsd,
+        0,
+        Number.POSITIVE_INFINITY,
+        0,
+      ),
+      carbonAbatementTonnes: clampNumber(row.carbonAbatementTonnes, 0, 0.5, 0),
+      latestVessel: row.vessel,
+      latestRotation: row.rotation,
+      arrivalVarianceHours: row.arrivalVarianceHours,
+      waitTimeAtbBtrHours: row.waitTimeAtbBtrHours,
+      sampleCount: count,
+      lastUpdated: row.finalBtrMs,
+    });
+  }
+
+  ports.sort((a, b) => a.name.localeCompare(b.name));
+
+  const bunkerValues = parsedRows
+    .map((row) => row.bunkerSavedUsd)
+    .filter(
+      (value): value is number =>
+        value !== null && Number.isFinite(value) && value > 0,
+    );
+
+  const median = bunkerValues.length ? getMedian(bunkerValues) : 0;
+  const p90 =
+    bunkerValues.length > 1 ? getPercentile(bunkerValues, 0.9) : median || 1;
+
+  const sortedRows = [...parsedRows].sort(
+    (a, b) => (b.finalBtrMs ?? -Infinity) - (a.finalBtrMs ?? -Infinity),
+  );
+  const trails: ARVisualizationData["trails"] = [];
+  const TRAIL_LIMIT = 120;
+
+  for (const row of sortedRows) {
+    if (trails.length >= TRAIL_LIMIT) break;
+    const fromCoord = row.from ? PORT_COORDINATES[row.from] : undefined;
+    const toCoord = row.to ? PORT_COORDINATES[row.to] : undefined;
+    if (!fromCoord || !toCoord) continue;
+
+    trails.push({
+      id: `${row.rotation ?? row.vessel ?? row.bu}-${row.index}`,
+      from: {
+        code: fromCoord.code,
+        name: fromCoord.name,
+        lat: fromCoord.lat,
+        lng: fromCoord.lng,
+      },
+      to: {
+        code: toCoord.code,
+        name: toCoord.name,
+        lat: toCoord.lat,
+        lng: toCoord.lng,
+      },
+      arrivalAccuracy: row.arrivalAccuracy,
+      bunkerSavedUsd: row.bunkerSavedUsd ?? 0,
+      carbonAbatementTonnes: clampNumber(row.carbonAbatementTonnes, 0, 0.5, 0),
+    });
   }
 
   return {
-    name,
-    lat: latitude,
-    lng: longitude,
-    kpi: kpiValue,
-    metrics: {
-      arrival_accuracy_delta_week: arrival,
-      assured_port_time_pct: assured,
-      berth_time_variance_h: variance,
-      throughput_teu_day: throughput,
+    ports,
+    trails,
+    bunkerSavedStats: {
+      median,
+      p90: p90 || 1,
     },
   };
+}
+
+type ParsedRow = {
+  index: number;
+  bu: string;
+  vessel: string | null;
+  rotation: string | null;
+  from: string | null;
+  to: string | null;
+  arrivalAccuracy: AccuracyFlag;
+  assuredRatio: number | null;
+  berthTimeHours: number | null;
+  bunkerSavedUsd: number | null;
+  carbonAbatementTonnes: number | null;
+  arrivalVarianceHours: number | null;
+  waitTimeAtbBtrHours: number | null;
+  finalBtrMs: number | null;
+};
+
+function parseRow(entry: unknown, index: number): ParsedRow | null {
+  if (!entry || typeof entry !== "object") return null;
+
+  const row = entry as Record<string, unknown>;
+
+  const bu = valueToString(row.BU, { uppercase: true });
+  if (!bu) return null;
+
+  return {
+    index,
+    bu,
+    vessel: valueToString(row.Vessel),
+    rotation: valueToString(row["Rotation No."], { uppercase: true }),
+    from: valueToString(row.From, { uppercase: true }),
+    to: valueToString(row.To, { uppercase: true }),
+    arrivalAccuracy: parseAccuracy(row["Arrival Accuracy (Final BTR)"]),
+    assuredRatio: parseNumber(row["Assured Port Time Achieved (%)"]),
+    berthTimeHours: parseNumber(row["Berth Time (hours): ATU - ATB"]),
+    bunkerSavedUsd: parseNumber(row["Bunker Saved (USD)"]),
+    carbonAbatementTonnes: parseNumber(row["Carbon Abatement (Tonnes)"]),
+    arrivalVarianceHours: parseNumber(
+      row["Arrival Variance (within 4h target)"],
+    ),
+    waitTimeAtbBtrHours: parseNumber(row["Wait Time (Hours): ATB-BTR"]),
+    finalBtrMs: parseDateTime(row["Final BTR (Local Time)"]),
+  };
+}
+
+function valueToString(
+  value: unknown,
+  options?: { uppercase?: boolean },
+): string | null {
+  if (value === null || value === undefined) return null;
+  const str = String(value).trim();
+  if (!str) return null;
+  return options?.uppercase ? str.toUpperCase() : str;
+}
+
+function parseAccuracy(value: unknown): AccuracyFlag {
+  const str = valueToString(value, { uppercase: true });
+  if (!str) return null;
+  if (str === "Y") return "Y";
+  if (str === "N") return "N";
+  return null;
+}
+
+function parseNumber(value: unknown): number | null {
+  if (value === null || value === undefined) return null;
+  if (typeof value === "number" && Number.isFinite(value)) return value;
+  if (typeof value === "string") {
+    const normalized = value.replace(/,/g, "").trim();
+    if (!normalized) return null;
+    const parsed = Number(normalized);
+    return Number.isFinite(parsed) ? parsed : null;
+  }
+  return null;
+}
+
+function parseDateTime(value: unknown): number | null {
+  const str = valueToString(value);
+  if (!str) return null;
+
+  const [datePart, timePart] = str.split(" ");
+  if (!datePart) return null;
+  const segments = datePart.split("-");
+  if (segments.length !== 3) return null;
+  const [yy, mm, dd] = segments.map((segment) => Number(segment));
+  if ([yy, mm, dd].some((part) => Number.isNaN(part))) return null;
+
+  const year = 2000 + yy;
+  const month = mm - 1;
+  const [hourStr, minuteStr] = (timePart ?? "00:00").split(":");
+  const hour = Number(hourStr ?? "0");
+  const minute = Number(minuteStr ?? "0");
+
+  const date = new Date(Date.UTC(year, month, dd, hour, minute));
+  const timestamp = date.getTime();
+  return Number.isNaN(timestamp) ? null : timestamp;
+}
+
+function clampNumber(
+  value: number | null,
+  min: number,
+  max: number,
+  fallback: number,
+) {
+  if (value === null || Number.isNaN(value)) return fallback;
+  return Math.min(Math.max(value, min), max);
+}
+
+function titleCase(input: string) {
+  return input
+    .toLowerCase()
+    .split(" ")
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(" ");
+}
+
+function getMedian(values: number[]) {
+  if (values.length === 0) return 0;
+  const sorted = [...values].sort((a, b) => a - b);
+  const middle = Math.floor(sorted.length / 2);
+  if (sorted.length % 2 === 0) {
+    return (sorted[middle - 1] + sorted[middle]) / 2;
+  }
+  return sorted[middle];
+}
+
+function getPercentile(values: number[], percentile: number) {
+  if (values.length === 0) return 0;
+  const sorted = [...values].sort((a, b) => a - b);
+  const index = (sorted.length - 1) * percentile;
+  const lower = Math.floor(index);
+  const upper = Math.ceil(index);
+  if (lower === upper) {
+    return sorted[lower];
+  }
+  const weight = index - lower;
+  return sorted[lower] * (1 - weight) + sorted[upper] * weight;
 }
