@@ -575,27 +575,39 @@ function applyHeatmapMode(
   globe.pointsData(ports);
   globe.arcsData([]);
   globe.labelsData?.(ports);
-  globe.labelText?.((point) => point.name);
-  globe.labelAltitude?.(() => 0.12);
-  globe.labelSize?.(() => 1.25);
-  globe.labelColor?.(() => "#f8fafc");
+  // Compact, high-contrast label: CODE • Berth h • Assured %
+  globe.labelText?.((p) => {
+    const assured = Math.round(clamp(p.assuredPortTimeRatio, 0, 1) * 100);
+    const berth = p.berthTimeHours.toFixed(1);
+    return `${p.code}  •  ${berth}h  •  ${assured}%`;
+  });
+  globe.labelAltitude?.((p) => (p.id === selected ? 0.22 : 0.18));
+  globe.labelSize?.((p) => (p.id === selected ? 1.8 : 1.25));
+  globe.labelColor?.((p) =>
+    p.arrivalAccuracy === "Y"
+      ? "#eafff7"
+      : p.arrivalAccuracy === "N"
+        ? "#ffecec"
+        : "#e5e7eb",
+  );
 
   globe.pointRadius((point) => {
+    // Slightly thinner bars for clarity; widen on selection
     const base = mapRange(
       clamp(point.assuredPortTimeRatio, 0, 1),
       0,
       1,
-      0.14,
-      0.32,
+      0.12,
+      0.26,
     );
     if (selected && point.id === selected) {
       return base * 1.35;
     }
-    return base;
+    return base * 0.9;
   });
 
   globe.pointAltitude((point) =>
-    mapRange(clamp(point.berthTimeHours, 0, 40), 0, 40, 0.18, 0.85),
+    mapRange(clamp(point.berthTimeHours, 0, 40), 0, 40, 0.2, 0.9),
   );
 
   globe.pointColor((point) =>
@@ -616,18 +628,22 @@ function applySustainabilityMode(
   globe.arcsData([]);
   globe.pointsData(ports);
   globe.labelsData?.(ports);
-  globe.labelText?.((point) => point.name);
-  globe.labelAltitude?.(() => 0.15);
-  globe.labelSize?.(() => 1.1);
-  globe.labelColor?.(() => "#ccfbf1");
+  // Compact KPI label emphasizing sustainability metrics
+  globe.labelText?.(
+    (p) =>
+      `${p.code}  •  ${p.carbonAbatementTonnes.toFixed(3)}t  •  ${formatCurrency(
+        p.bunkerSavedUsd,
+      )}`,
+  );
+  globe.labelAltitude?.((p) => (p.id === selected ? 0.22 : 0.18));
+  globe.labelSize?.((p) => (p.id === selected ? 1.6 : 1.15));
+  globe.labelColor?.(() => "#d1fae5");
 
   globe.pointRadius((point) =>
     mapRange(clamp(point.carbonAbatementTonnes, 0, 0.5), 0, 0.5, 0.1, 0.22),
   );
   globe.pointAltitude(() => 0.12);
-  globe.pointColor((point) =>
-    getSustainabilityColor(point, selected === point.id),
-  );
+  globe.pointColor((point) => getSustainabilityColor(point));
 
   if (globe.pointLabel) {
     globe.pointLabel((point) => formatSustainabilityTooltip(point));
@@ -649,7 +665,7 @@ function applySustainabilityMode(
     const material = new t.MeshBasicMaterial({
       color: 0x2dd4bf,
       transparent: true,
-      opacity: 0.32,
+      opacity: 0.36,
       side: t.DoubleSide,
       depthWrite: false,
     });
@@ -673,8 +689,9 @@ function applySustainabilityMode(
 
     const intensity = clamp(port.carbonAbatementTonnes, 0, 0.5) / 0.5;
     record.intensity = intensity;
-    record.pulseSpeed = port.bunkerSavedUsd > median ? 1.75 : 1.15;
-    record.baseScale = 1 + intensity * 0.45;
+    record.pulseSpeed =
+      port.id === selected ? 2.1 : port.bunkerSavedUsd > median ? 1.75 : 1.15;
+    record.baseScale = (port.id === selected ? 1.2 : 1) + intensity * 0.45;
 
     const ring = group.children?.[0] as any;
     if (ring) {
@@ -683,7 +700,8 @@ function applySustainabilityMode(
       ring.geometry?.dispose?.();
       ring.geometry = new t.RingGeometry(innerRadius, outerRadius, 80);
       if (ring.material) {
-        ring.material.opacity = 0.3 + intensity * 0.45;
+        ring.material.opacity =
+          (port.id === selected ? 0.45 : 0.3) + intensity * 0.45;
         record.material = ring.material;
       }
     }
@@ -734,6 +752,16 @@ function applyVesselTrailsMode(
   globe.arcDashGap(() => 0.65);
   globe.arcDashInitialGap((trail) => (trail.arrivalAccuracy === "Y" ? 0 : 0.4));
   globe.arcDashAnimateTime((trail) => getArcAnimateTime(trail, p90));
+
+  // Show a clean label only for the selected port so arcs stay readable
+  if (selected) {
+    const selectedPorts = ports.filter((p) => p.id === selected);
+    globe.labelsData?.(selectedPorts);
+    globe.labelText?.((p) => `${p.code} • ${formatCurrency(p.bunkerSavedUsd)}`);
+    globe.labelAltitude?.(() => 0.2);
+    globe.labelSize?.(() => 1.6);
+    globe.labelColor?.(() => "#e5e7eb");
+  }
 }
 
 function getAccuracyColor(flag: AccuracyFlag, emphasize = false) {
