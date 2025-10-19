@@ -11,7 +11,13 @@ import {
 import { SidebarGroupContent, SidebarMenu, SidebarMenuItem } from "ui/sidebar";
 import { SidebarGroup } from "ui/sidebar";
 import { ThreadDropdown } from "../thread-dropdown";
-import { ChevronDown, ChevronUp, MoreHorizontal, Trash } from "lucide-react";
+import {
+  ChevronDown,
+  ChevronUp,
+  Globe2,
+  MoreHorizontal,
+  Trash,
+} from "lucide-react";
 import { useMounted } from "@/hooks/use-mounted";
 import { appStore } from "@/app/store";
 import { Button } from "ui/button";
@@ -170,37 +176,73 @@ export function AppSidebarThreads() {
     });
   };
 
+  const enterARBlock = (
+    <SidebarGroup>
+      <SidebarGroupContent className="group-data-[collapsible=icon]:hidden group/threads">
+        <SidebarMenu>
+          <SidebarMenuItem className="px-2">
+            <Button
+              asChild
+              className="w-full justify-start gap-2 rounded-lg border border-emerald-500/40 bg-emerald-500/10 px-4 py-5 text-left text-emerald-100 shadow-sm transition hover:border-emerald-400/80 hover:bg-emerald-500/20 hover:text-emerald-50"
+              size="lg"
+            >
+              <Link href="/ar">
+                <Globe2 className="size-4" />
+                <div className="flex flex-col">
+                  <span className="text-sm font-semibold leading-none">
+                    Enter AR
+                  </span>
+                  <span className="mt-1 text-xs font-normal text-emerald-100/70">
+                    Launch the AR globe overlay.
+                  </span>
+                </div>
+              </Link>
+            </Button>
+            <p className="mt-3 text-xs text-muted-foreground">
+              Scan the HIRO marker to see the AR globe.
+            </p>
+          </SidebarMenuItem>
+        </SidebarMenu>
+      </SidebarGroupContent>
+    </SidebarGroup>
+  );
+
   if (isLoading || threadList?.length === 0)
     return (
-      <SidebarGroup>
-        <SidebarGroupContent className="group-data-[collapsible=icon]:hidden group/threads">
-          <SidebarMenu>
-            <SidebarMenuItem>
-              <SidebarGroupLabel className="">
-                <h4 className="text-xs text-muted-foreground">
-                  {t("recentChats")}
-                </h4>
-              </SidebarGroupLabel>
+      <>
+        {enterARBlock}
+        <SidebarGroup>
+          <SidebarGroupContent className="group-data-[collapsible=icon]:hidden group/threads">
+            <SidebarMenu>
+              <SidebarMenuItem>
+                <SidebarGroupLabel className="">
+                  <h4 className="text-xs text-muted-foreground">
+                    {t("recentChats")}
+                  </h4>
+                </SidebarGroupLabel>
 
-              {isLoading ? (
-                Array.from({ length: 12 }).map(
-                  (_, index) => mounted && <SidebarMenuSkeleton key={index} />,
-                )
-              ) : (
-                <div className="px-2 py-4 text-center">
-                  <p className="text-sm text-muted-foreground">
-                    {t("noConversationsYet")}
-                  </p>
-                </div>
-              )}
-            </SidebarMenuItem>
-          </SidebarMenu>
-        </SidebarGroupContent>
-      </SidebarGroup>
+                {isLoading ? (
+                  Array.from({ length: 12 }).map(
+                    (_, index) =>
+                      mounted && <SidebarMenuSkeleton key={index} />,
+                  )
+                ) : (
+                  <div className="px-2 py-4 text-center">
+                    <p className="text-sm text-muted-foreground">
+                      {t("noConversationsYet")}
+                    </p>
+                  </div>
+                )}
+              </SidebarMenuItem>
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+      </>
     );
 
   return (
     <>
+      {enterARBlock}
       {threadGroupByDate.map((group, index) => {
         const isFirst = index === 0;
         return (

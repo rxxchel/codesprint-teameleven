@@ -1,0 +1,145 @@
+{
+  "ports": [
+    {
+      "name": "Busan",
+      "lat": 35.1796,
+      "lng": 129.0756,
+      "kpi": -0.05,
+      "metrics": {
+        "arrival_accuracy_delta_week": -0.05,
+        "assured_port_time_pct": 92.1,
+        "berth_time_variance_h": 1.4,
+        "throughput_teu_day": 18500
+      }
+    },
+    {
+      "name": "Singapore",
+      "lat": 1.3521,
+      "lng": 103.8198,
+      "kpi": 0.08,
+      "metrics": {
+        "arrival_accuracy_delta_week": 0.08,
+        "assured_port_time_pct": 88.3,
+        "berth_time_variance_h": 3.1,
+        "throughput_teu_day": 29000
+      }
+    },
+    {
+      "name": "Shanghai",
+      "lat": 31.2304,
+      "lng": 121.4737,
+      "kpi": -0.12,
+      "metrics": {
+        "arrival_accuracy_delta_week": -0.12,
+        "assured_port_time_pct": 95.4,
+        "berth_time_variance_h": 0.9,
+        "throughput_teu_day": 32500
+      }
+    },
+    {
+      "name": "Rotterdam",
+      "lat": 51.9244,
+      "lng": 4.4777,
+      "kpi": 0.04,
+      "metrics": {
+        "arrival_accuracy_delta_week": 0.04,
+        "assured_port_time_pct": 86.7,
+        "berth_time_variance_h": 2.4,
+        "throughput_teu_day": 21000
+      }
+    },
+    {
+      "name": "Los Angeles",
+      "lat": 33.7405,
+      "lng": -118.276,
+      "kpi": 0.11,
+      "metrics": {
+        "arrival_accuracy_delta_week": 0.11,
+        "assured_port_time_pct": 82.6,
+        "berth_time_variance_h": 4.8,
+        "throughput_teu_day": 24500
+      }
+    },
+    {
+      "name": "Hamburg",
+      "lat": 53.5511,
+      "lng": 9.9937,
+      "kpi": -0.09,
+      "metrics": {
+        "arrival_accuracy_delta_week": -0.09,
+        "assured_port_time_pct": 91.2,
+        "berth_time_variance_h": 1.7,
+        "throughput_teu_day": 15800
+      }
+    },
+    {
+      "name": "Dubai (Jebel Ali)",
+      "lat": 25.0108,
+      "lng": 55.0618,
+      "kpi": -0.03,
+      "metrics": {
+        "arrival_accuracy_delta_week": -0.03,
+        "assured_port_time_pct": 93.7,
+        "berth_time_variance_h": 1.1,
+        "throughput_teu_day": 27000
+      }
+    },
+    {
+      "name": "Antwerp-Bruges",
+      "lat": 51.2637,
+      "lng": 4.4121,
+      "kpi": 0.06,
+      "metrics": {
+        "arrival_accuracy_delta_week": 0.06,
+        "assured_port_time_pct": 84.5,
+        "berth_time_variance_h": 3.3,
+        "throughput_teu_day": 19800
+      }
+    },
+    {
+      "name": "Santos",
+      "lat": -23.9618,
+      "lng": -46.328,
+      "kpi": 0.02,
+      "metrics": {
+        "arrival_accuracy_delta_week": 0.02,
+        "assured_port_time_pct": 89.6,
+        "berth_time_variance_h": 2.1,
+        "throughput_teu_day": 13400
+      }
+    },
+    {
+      "name": "Hong Kong",
+      "lat": 22.3193,
+      "lng": 114.1694,
+      "kpi": -0.07,
+      "metrics": {
+        "arrival_accuracy_delta_week": -0.07,
+        "assured_port_time_pct": 94.9,
+        "berth_time_variance_h": 1.3,
+        "throughput_teu_day": 27600
+      }
+    },
+    {
+      "name": "New York/New Jersey",
+      "lat": 40.6681,
+      "lng": -74.0451,
+      "kpi": 0.09,
+      "metrics": {
+        "arrival_accuracy_delta_week": 0.09,
+        "assured_port_time_pct": 83.9,
+        "berth_time_variance_h": 4.1,
+        "throughput_teu_day": 20500
+      }
+    }
+  ],
+  "meta": {
+    "as_of": "2025-10-19T00:00:00Z",
+    "units": {
+      "kpi": "delta",
+      "assured_port_time_pct": "%",
+      "berth_time_variance_h": "hours",
+      "throughput_teu_day": "TEU/day"
+    }
+  }
+}
