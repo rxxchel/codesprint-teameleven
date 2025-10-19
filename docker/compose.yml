@@ -1,5 +1,5 @@
 services:
-  better-chatbot:
+  fishai:
     build:
       context: ..
       dockerfile: ./docker/Dockerfile
@@ -15,7 +15,7 @@ services:
     extra_hosts:
       - "host.docker.internal:host-gateway"
     networks:
-      - better-chatbot-networks
+      - fishai-networks
     depends_on:
       - postgres
     restart: unless-stopped
@@ -25,7 +25,7 @@ services:
     env_file:
       - .env
     networks:
-      - better-chatbot-networks
+      - fishai-networks
     volumes:
       - postgres_data:/var/lib/postgresql/data
     restart: unless-stopped
@@ -34,5 +34,5 @@ volumes:
   postgres_data:
 
 networks:
-  better-chatbot-networks:
+  fishai-networks:
     driver: bridge

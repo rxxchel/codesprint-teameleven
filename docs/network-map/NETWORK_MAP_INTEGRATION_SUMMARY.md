@@ -2,7 +2,7 @@
 
 ## ✅ Integration Complete!
 
-Successfully integrated the Global Insights Map from `codesprint-ui` into `better-chatbot` as a standalone page feature.
+Successfully integrated the Global Insights Map from `codesprint-ui` into `fishai` as a standalone page feature.
 
 ---
 
@@ -133,7 +133,7 @@ Each metric uses color coding (green=good, red=poor) and marker sizing (larger=h
    - Sign up (free tier available)
    - Copy your public token (`pk.xxx...`)
    - Add to `docker/.env`: `NEXT_PUBLIC_MAPBOX_TOKEN=pk.your-token`
-   - Restart: `docker compose -f docker/compose.yml restart better-chatbot`
+   - Restart: `docker compose -f docker/compose.yml restart fishai`
 
 ---
 
@@ -141,10 +141,10 @@ Each metric uses color coding (green=good, red=poor) and marker sizing (larger=h
 
 ### Why Standalone Page (not Artifact)?
 
-Better-chatbot doesn't have codesprint-ui's artifact system, so we created a standalone page similar to the `/powerbi` route. This approach:
+FishAI doesn't have codesprint-ui's artifact system, so we created a standalone page similar to the `/powerbi` route. This approach:
 
 - ✅ Simpler integration
-- ✅ Follows existing patterns in better-chatbot
+- ✅ Follows existing patterns in FishAI
 - ✅ Works immediately without complex dependencies
 - ✅ Easy to maintain and customize
 
@@ -260,7 +260,7 @@ const END_COLOR = { r: 255, g: 61, b: 0 }; // Red
 echo 'NEXT_PUBLIC_MAPBOX_TOKEN=pk.your-actual-token-here' >> docker/.env
 
 # 2. Restart container
-docker compose -f docker/compose.yml restart better-chatbot
+docker compose -f docker/compose.yml restart fishai
 ```
 
 ### Markers Not Appearing
@@ -278,7 +278,7 @@ If you see TypeScript errors during development:
 
 ```bash
 # Rebuild
-docker compose -f docker/compose.yml build --no-cache better-chatbot
+docker compose -f docker/compose.yml build --no-cache fishai
 docker compose -f docker/compose.yml up -d
 ```
 

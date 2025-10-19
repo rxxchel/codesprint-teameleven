@@ -34,7 +34,7 @@ The Network Map provides a visual overview of PSA's global port network with:
 
 **URL**: http://localhost:3000/network-map
 
-Or navigate to it from the Better Chatbot UI.
+Or navigate to it from the FishAI UI.
 
 ## Setup Requirements
 
@@ -58,7 +58,7 @@ NEXT_PUBLIC_MAPBOX_TOKEN=pk.your-actual-mapbox-token-here
 ### 3. Restart Docker
 
 ```bash
-docker compose -f docker/compose.yml restart better-chatbot
+docker compose -f docker/compose.yml restart fishai
 ```
 
 ## Data Source
