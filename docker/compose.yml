@@ -12,6 +12,8 @@ services:
     dns:
       - 8.8.8.8 # Google's public DNS server
       - 8.8.4.4 # Google's public DNS server
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     networks:
       - better-chatbot-networks
     depends_on:
