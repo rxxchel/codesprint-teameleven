@@ -5,16 +5,14 @@ services:
     plan: free
     autoDeploy: true
 
-    # Build a minimal image that starts MCP on $PORT
-    dockerfilePath: docker/mcp.Dockerfile
-    dockerContext: .
+    image:
+      url: docker.io/mcp/playwright:latest
 
-    # HTTP health check (Render hits this path)
+    # MCP already runs on port 8931 inside container
     healthCheckPath: /
 
-    # Env you may tune without changing the image
     envVars:
-      - key: ALLOWED_HOSTS # tighten later: "your-app.vercel.app,fishai.app"
-        value: "*"
       - key: NODE_ENV
         value: production
+      - key: ALLOWED_HOSTS
+        value: "*" # or your-vercel-domain.vercel.app
