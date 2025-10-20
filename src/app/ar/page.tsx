@@ -6,7 +6,7 @@ import { useEffect, useMemo, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { toast } from "sonner";
 
-import ChatSheet from "@/components/ar/chat-sheet";
+import ArCopilot from "@/components/ar/ar-copilot";
 import PortInfoCard from "@/components/ar/port-info-card";
 import TopBar from "@/components/ar/top-bar";
 import type { ARVisualizationData, PortDatum } from "@/components/ar-globe";
@@ -521,7 +521,7 @@ export default function ARPage() {
         )}
       </AnimatePresence>
 
-      <ChatSheet
+      <ArCopilot
         open={isChatOpen}
         onOpenChange={(open) => {
           setIsChatOpen(open);
