@@ -2,7 +2,7 @@ services:
   - type: web
     name: mcp-playwright
     env: docker
-    plan: starter
+    plan: free
     autoDeploy: true
 
     # Build a minimal image that starts MCP on $PORT
