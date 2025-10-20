@@ -5,14 +5,15 @@ services:
     plan: free
     autoDeploy: true
 
-    image:
-      url: docker.io/mcp/playwright:latest
+    dockerfilePath: docker/mcp.Dockerfile
+    dockerContext: .
 
-    # MCP already runs on port 8931 inside container
+    # Render does HTTP health checks; default "/" is fine
     healthCheckPath: /
 
     envVars:
+      # tighten later to your Vercel/custom domains
+      - key: ALLOWED_HOSTS
+        value: "*"
       - key: NODE_ENV
         value: production
-      - key: ALLOWED_HOSTS
-        value: "*" # or your-vercel-domain.vercel.app
