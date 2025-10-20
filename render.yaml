@@ -5,25 +5,27 @@ services:
     plan: starter
     autoDeploy: true
 
-    # Pull the public image from Docker Hub
+    # Use the official Playwright MCP image from Docker Hub
     image:
       url: docker.io/mcp/playwright:latest
 
-    # MCP listens on 8931
-    ports:
-      - port: 8931
-        protocol: tcp
-
-    # Start MCP exactly like you do locally
+    # Render assigns a dynamic $PORT — bind MCP to it.
+    # (Health check is HTTP; default path "/" is fine.)
     startCommand: >
-      npx @playwright/mcp@latest
-      --port 8931
+      sh -lc 'npx @playwright/mcp@latest
+      --port "$PORT"
       --host 0.0.0.0
       --browser chromium
-      --allowed-hosts *
-      --no-sandbox
+      --allowed-hosts "*"   # tighten in prod
+      --no-sandbox'
 
-    # Simple TCP healthcheck
-    healthCheck:
-      type: tcp
-      port: 8931
+    healthCheckPath: /
+
+    # Optional environment variables you may want to pin now or later
+    envVars:
+      # Example: restrict allowed hosts (replace with your actual domains)
+      # - key: ALLOWED_HOSTS
+      #   value: your-app.vercel.app,api.yourdomain.com
+      # Then use: --allowed-hosts $ALLOWED_HOSTS
+      - key: NODE_ENV
+        value: production
