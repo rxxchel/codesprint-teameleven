@@ -124,7 +124,7 @@ export function ArCopilot({
         latestRef.current.messages = messages;
         const lastMessage = messages.at(-1);
         if (!lastMessage) {
-          return { body };
+          return { body: body || {} };
         }
 
         const requestBody: ChatApiSchemaRequestBody = {
