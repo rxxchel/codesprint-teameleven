@@ -367,7 +367,7 @@ export const AssistMessagePart = memo(function AssistMessagePart({
     >
       <div
         data-testid="message-content"
-        className={cn("flex flex-col gap-4 px-2", {
+        className={cn("flex flex-col gap-4 px-2 text-gray-100", {
           "opacity-50 border border-destructive bg-card rounded-lg": isError,
         })}
       >
