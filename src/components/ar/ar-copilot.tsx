@@ -294,51 +294,53 @@ export function ArCopilot({
 
   return (
     <div className="pointer-events-none fixed inset-0 z-40 flex flex-col">
-      <div className="pointer-events-auto px-4 pt-[calc(96px+env(safe-area-inset-top,0))]">
-        <div className="max-h-[40vh] space-y-3 overflow-y-auto pr-1">
-          {messageBubbles.length === 0 ? (
-            <div className="inline-flex rounded-2xl border border-white/20 bg-black/60 px-4 py-3 text-sm text-white/80 backdrop-blur">
-              Start a conversation to get AI guidance for terminal ops.
-            </div>
-          ) : (
-            messageBubbles.map((message) => {
-              const text = message.parts
-                .filter((part) => part.type === "text")
-                .map((part) => (part as TextUIPart).text)
-                .join("\n")
-                .trim();
-              const isUser = message.role === "user";
-              return (
-                <div
-                  key={message.id}
-                  className={clsx(
-                    "flex w-full",
-                    isUser ? "justify-end" : "justify-start",
-                  )}
-                >
+      <div className="pointer-events-auto px-4 pt-[calc(128px+env(safe-area-inset-top,0))]">
+        <div className="mx-auto w-full max-w-xl">
+          <div className="max-h-[32vh] space-y-3 overflow-y-auto pr-1">
+            {messageBubbles.length === 0 ? (
+              <div className="inline-flex rounded-2xl border border-white/20 bg-black/60 px-4 py-3 text-sm text-white/80 backdrop-blur">
+                Start a conversation to get AI guidance for terminal ops.
+              </div>
+            ) : (
+              messageBubbles.map((message) => {
+                const text = message.parts
+                  .filter((part) => part.type === "text")
+                  .map((part) => (part as TextUIPart).text)
+                  .join("\n")
+                  .trim();
+                const isUser = message.role === "user";
+                return (
                   <div
-                    className={cn(
-                      "max-w-[85%] rounded-3xl px-4 py-3 text-sm leading-relaxed shadow-lg backdrop-blur",
-                      isUser
-                        ? "bg-white/80 text-black"
-                        : "border border-white/20 bg-black/65 text-white",
+                    key={message.id}
+                    className={clsx(
+                      "flex w-full",
+                      isUser ? "justify-end" : "justify-start",
                     )}
                   >
-                    <p className="whitespace-pre-wrap">{text}</p>
+                    <div
+                      className={cn(
+                        "max-w-[85%] rounded-3xl px-4 py-3 text-sm leading-relaxed shadow-lg backdrop-blur",
+                        isUser
+                          ? "bg-white/80 text-black"
+                          : "border border-white/20 bg-black/65 text-white",
+                      )}
+                    >
+                      <p className="whitespace-pre-wrap">{text}</p>
+                    </div>
                   </div>
-                </div>
-              );
-            })
-          )}
+                );
+              })
+            )}
 
-          {isLoading && (
-            <div className="flex w-full justify-start">
-              <div className="flex items-center gap-2 rounded-3xl border border-white/20 bg-black/60 px-4 py-2 text-xs text-white/70">
-                <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                Generating insight…
+            {isLoading && (
+              <div className="flex w-full justify-start">
+                <div className="flex items-center gap-2 rounded-3xl border border-white/20 bg-black/55 px-4 py-2 text-xs text-white/70">
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                  Generating insight…
+                </div>
               </div>
-            </div>
-          )}
+            )}
+          </div>
         </div>
       </div>
 
@@ -346,52 +348,56 @@ export function ArCopilot({
 
       <form
         onSubmit={handleSubmit}
-        className="pointer-events-auto flex flex-col gap-3 px-4 pb-[calc(24px+env(safe-area-inset-bottom,0))]"
+        className="pointer-events-auto px-4 pb-[calc(24px+env(safe-area-inset-bottom,0))]"
       >
-        <div className="flex flex-wrap gap-2">
-          {suggestionChips.map((suggestion) => (
-            <button
-              key={suggestion}
-              type="button"
-              onClick={() => handleSuggestion(suggestion)}
-              className="rounded-full border border-white/30 bg-white/10 px-3 py-1.5 text-xs font-medium text-white/80 transition hover:bg-white/20"
-            >
-              {suggestion}
-            </button>
-          ))}
-        </div>
-
-        <div className="relative overflow-hidden rounded-3xl border border-white/20 bg-black/65 p-3 shadow-2xl backdrop-blur">
-          <Textarea
-            ref={textareaRef}
-            value={input}
-            onChange={(event) => setInput(event.target.value)}
-            onKeyDown={handleKeyDown}
-            placeholder="Ask about throughput impact, delays, or recommended actions…"
-            className="min-h-[110px] resize-none border-none bg-transparent text-sm text-white placeholder:text-white/40 focus-visible:ring-0"
-          />
-          <div className="mt-3 flex items-center justify-between text-xs text-white/60">
-            <span>{isLoading ? "Generating…" : "Shift+Enter for newline"}</span>
-            <div className="flex items-center gap-2">
-              {isLoading && (
-                <Button
-                  type="button"
-                  size="icon"
-                  variant="ghost"
-                  className="h-8 w-8 rounded-full border border-white/20 bg-white/10 text-white hover:bg-white/20"
-                  onClick={() => stop()}
-                >
-                  <StopCircle className="h-4 w-4" />
-                </Button>
-              )}
-              <Button
-                type="submit"
-                disabled={input.trim().length === 0 || isLoading}
-                size="icon"
-                className="h-10 w-10 rounded-full border border-white/30 bg-white text-black hover:bg-white/90 disabled:opacity-60"
+        <div className="mx-auto flex w-full max-w-xl flex-col gap-2">
+          <div className="flex flex-wrap gap-2">
+            {suggestionChips.map((suggestion) => (
+              <button
+                key={suggestion}
+                type="button"
+                onClick={() => handleSuggestion(suggestion)}
+                className="rounded-full border border-white/30 bg-white/10 px-3 py-1.5 text-xs font-medium text-white/80 transition hover:bg-white/20"
               >
-                <Send className="h-4 w-4" />
-              </Button>
+                {suggestion}
+              </button>
+            ))}
+          </div>
+
+          <div className="relative overflow-hidden rounded-[28px] border border-white/20 bg-black/65 p-3 shadow-2xl backdrop-blur">
+            <Textarea
+              ref={textareaRef}
+              value={input}
+              onChange={(event) => setInput(event.target.value)}
+              onKeyDown={handleKeyDown}
+              placeholder="Ask about throughput impact, delays, or recommended actions…"
+              className="min-h-[64px] resize-none border-none bg-transparent text-sm text-white placeholder:text-white/40 focus-visible:ring-0"
+            />
+            <div className="mt-2 flex items-center justify-between text-xs text-white/60">
+              <span>
+                {isLoading ? "Generating…" : "Shift+Enter for newline"}
+              </span>
+              <div className="flex items-center gap-2">
+                {isLoading && (
+                  <Button
+                    type="button"
+                    size="icon"
+                    variant="ghost"
+                    className="h-8 w-8 rounded-full border border-white/20 bg-white/10 text-white hover:bg-white/20"
+                    onClick={() => stop()}
+                  >
+                    <StopCircle className="h-4 w-4" />
+                  </Button>
+                )}
+                <Button
+                  type="submit"
+                  disabled={input.trim().length === 0 || isLoading}
+                  size="icon"
+                  className="h-10 w-10 rounded-full border border-white/30 bg-white text-black hover:bg-white/90 disabled:opacity-60"
+                >
+                  <Send className="h-4 w-4" />
+                </Button>
+              </div>
             </div>
           </div>
         </div>
