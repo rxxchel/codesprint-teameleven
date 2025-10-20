@@ -1,0 +1,113 @@
+databases:
+  - name: fishai-postgres
+    plan: free
+    databaseName: fishai
+    user: fishai
+
+envVarGroups:
+  - name: fishai-secrets
+    envVars:
+      - key: BETTER_AUTH_SECRET
+        sync: false
+      - key: BETTER_AUTH_URL
+        sync: false
+      - key: BETTER_AUTH_TRUSTED_ORIGINS
+        sync: false
+      - key: GOOGLE_GENERATIVE_AI_API_KEY
+        sync: false
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: XAI_API_KEY
+        sync: false
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: OPENROUTER_API_KEY
+        sync: false
+      - key: GROQ_API_KEY
+        sync: false
+      - key: POWERBI_CLIENT_ID
+        sync: false
+      - key: POWERBI_CLIENT_SECRET
+        sync: false
+      - key: POWERBI_TENANT_ID
+        sync: false
+      - key: POWERBI_WORKSPACE_ID
+        sync: false
+      - key: POWERBI_REPORT_ID
+        sync: false
+      - key: REDIS_URL
+        sync: false
+      - key: NEXT_PUBLIC_MAPBOX_TOKEN
+        sync: false
+  - name: fishai-optional-oauth
+    envVars:
+      - key: GITHUB_CLIENT_ID
+        sync: false
+      - key: GITHUB_CLIENT_SECRET
+        sync: false
+      - key: GOOGLE_CLIENT_ID
+        sync: false
+      - key: GOOGLE_CLIENT_SECRET
+        sync: false
+      - key: GOOGLE_FORCE_ACCOUNT_SELECTION
+        sync: false
+      - key: MICROSOFT_CLIENT_ID
+        sync: false
+      - key: MICROSOFT_CLIENT_SECRET
+        sync: false
+      - key: MICROSOFT_TENANT_ID
+        sync: false
+      - key: MICROSOFT_FORCE_ACCOUNT_SELECTION
+        sync: false
+      - key: DISABLE_EMAIL_SIGN_IN
+        sync: false
+      - key: DISABLE_SIGN_UP
+        sync: false
+      - key: NOT_ALLOW_ADD_MCP_SERVERS
+        sync: false
+      - key: MCP_MAX_TOTAL_TIMEOUT
+        sync: false
+
+services:
+  - type: web
+    name: fishai-web
+    env: docker
+    plan: starter
+    region: oregon
+    autoDeploy: true
+    dockerfilePath: docker/Dockerfile
+    dockerContext: .
+    healthCheckPath: /
+    envVarGroups:
+      - fishai-secrets
+      - fishai-optional-oauth
+    envVars:
+      - key: NO_HTTPS
+        value: "1"
+      - key: POSTGRES_URL
+        fromDatabase:
+          name: fishai-postgres
+          property: connectionString
+      - key: POSTGRES_USER
+        fromDatabase:
+          name: fishai-postgres
+          property: user
+      - key: POSTGRES_PASSWORD
+        fromDatabase:
+          name: fishai-postgres
+          property: password
+      - key: POSTGRES_DB
+        fromDatabase:
+          name: fishai-postgres
+          property: database
+
+  - type: web
+    name: playwright-mcp
+    env: node
+    plan: starter
+    region: oregon
+    autoDeploy: false
+    buildCommand: "true"
+    startCommand: "npx --yes @playwright/mcp@latest --port $PORT --host 0.0.0.0 --browser chromium --allowed-hosts '*' --no-sandbox"
+    envVarGroups:
+      - fishai-secrets
