@@ -5,27 +5,16 @@ services:
     plan: starter
     autoDeploy: true
 
-    # Use the official Playwright MCP image from Docker Hub
-    image:
-      url: docker.io/mcp/playwright:latest
+    # Build a minimal image that starts MCP on $PORT
+    dockerfilePath: docker/mcp.Dockerfile
+    dockerContext: .
 
-    # Render assigns a dynamic $PORT — bind MCP to it.
-    # (Health check is HTTP; default path "/" is fine.)
-    startCommand: >
-      sh -lc 'npx @playwright/mcp@latest
-      --port "$PORT"
-      --host 0.0.0.0
-      --browser chromium
-      --allowed-hosts "*"   # tighten in prod
-      --no-sandbox'
-
+    # HTTP health check (Render hits this path)
     healthCheckPath: /
 
-    # Optional environment variables you may want to pin now or later
+    # Env you may tune without changing the image
     envVars:
-      # Example: restrict allowed hosts (replace with your actual domains)
-      # - key: ALLOWED_HOSTS
-      #   value: your-app.vercel.app,api.yourdomain.com
-      # Then use: --allowed-hosts $ALLOWED_HOSTS
+      - key: ALLOWED_HOSTS # tighten later: "your-app.vercel.app,fishai.app"
+        value: "*"
       - key: NODE_ENV
         value: production
