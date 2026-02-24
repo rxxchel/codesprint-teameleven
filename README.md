@@ -120,11 +120,10 @@ POWERBI_REPORT_ID=your_powerbi_report_id
 # Get these from your Azure Active Directory app registration
 
 # === Mapbox (Required for 3D Network Map) ===
-NEXT_PUBLIC_MAPBOX_TOKEN=pk.eyJ1Ijoid3NrbGVlIiwiYSI6ImNsMzJ5M2E2YTA5MnMzYnM4anp5cGI2dGYifQ.xVEf1mgdf9-NVIRmlRnikg
+NEXT_PUBLIC_MAPBOX_TOKEN=
 # Get your token from: https://account.mapbox.com/
 
 # === Web Search ===
-EXA_API_KEY= 04f64ae6-4596-4961-ba3d-1652a3a706c9
-
+EXA_API_KEY=
 ```
 ---
